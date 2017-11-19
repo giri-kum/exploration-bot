@@ -1,0 +1,10 @@
+*.[o]
+bin/*
+lib/*
+src/lcmtypes/*
+
+current.map
+*startuplog.*
+
+!lib/libsweep.so
+!lib/librplidar_sdk.a
