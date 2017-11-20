@@ -3,9 +3,6 @@ struct exploration_status_t
     const int8_t STATE_INITIALIZING = 0;
     const int8_t STATE_EXPLORING_MAP = 1;
     const int8_t STATE_RETURNING_HOME = 2;
-    const int8_t STATE_FINDING_KEY = 3;
-    const int8_t STATE_GRABBING_TREASURE = 4;
-    const int8_t STATE_ESCAPING_MAP = 5;
     const int8_t STATE_COMPLETED_EXPLORATION = 6;
     const int8_t STATE_FAILED_EXPLORATION = 7;
     
