@@ -337,11 +337,6 @@ int8_t Exploration::executeReturningHome(bool initialize)
     {
         return exploration_status_t::STATE_RETURNING_HOME;
     }
-    else if(status.status == exploration_status_t::STATUS_COMPLETE)
-    {
-        return shouldAttemptEscape_ ? exploration_status_t::STATE_FINDING_KEY
-            : exploration_status_t::STATE_COMPLETED_EXPLORATION;
-    }
     else // if(status.status == exploration_status_t::STATUS_FAILED)
     {
         return exploration_status_t::STATE_FAILED_EXPLORATION;
