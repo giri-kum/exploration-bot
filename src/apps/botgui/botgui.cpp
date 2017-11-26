@@ -665,27 +665,6 @@ void BotGui::createGuiLayout(GtkWidget* window, GtkWidget* vxCanvas)
     gtk_box_pack_start(GTK_BOX(optionsBox_), explorationStateLabels_.back(), FALSE, FALSE, 0);
     
     explorationStateLabels_.push_back(gtk_event_box_new());
-    GtkWidget* keyText = gtk_label_new("Finding Key");
-    gtk_container_add(GTK_CONTAINER(explorationStateLabels_.back()), keyText);
-    gtk_widget_modify_fg(keyText, GTK_STATE_NORMAL, &textColor);
-    gtk_widget_modify_bg(explorationStateLabels_.back(), GTK_STATE_NORMAL, &bgColor);
-    gtk_box_pack_start(GTK_BOX(optionsBox_), explorationStateLabels_.back(), FALSE, FALSE, 0);
-    
-    explorationStateLabels_.push_back(gtk_event_box_new());
-    GtkWidget* treasureText = gtk_label_new("Grabbing Treasure");
-    gtk_container_add(GTK_CONTAINER(explorationStateLabels_.back()), treasureText);
-    gtk_widget_modify_fg(treasureText, GTK_STATE_NORMAL, &textColor);
-    gtk_widget_modify_bg(explorationStateLabels_.back(), GTK_STATE_NORMAL, &bgColor);
-    gtk_box_pack_start(GTK_BOX(optionsBox_), explorationStateLabels_.back(), FALSE, FALSE, 0);
-    
-    explorationStateLabels_.push_back(gtk_event_box_new());
-    GtkWidget* escapeText = gtk_label_new("Escaping Map");
-    gtk_container_add(GTK_CONTAINER(explorationStateLabels_.back()), escapeText);
-    gtk_widget_modify_fg(escapeText, GTK_STATE_NORMAL, &textColor);
-    gtk_widget_modify_bg(explorationStateLabels_.back(), GTK_STATE_NORMAL, &bgColor);
-    gtk_box_pack_start(GTK_BOX(optionsBox_), explorationStateLabels_.back(), FALSE, FALSE, 0);
-    
-    explorationStateLabels_.push_back(gtk_event_box_new());
     GtkWidget* completedText = gtk_label_new("Completed Exploration");
     gtk_container_add(GTK_CONTAINER(explorationStateLabels_.back()), completedText);
     gtk_widget_modify_fg(completedText, GTK_STATE_NORMAL, &textColor);
