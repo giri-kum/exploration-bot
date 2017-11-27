@@ -34,3 +34,4 @@
 = setenv.sh
     - a script for setting environment variables needed for running Vx applications
     - run this script before running botgui in a terminal on your laptop
+    - run via `. setenv.sh` -- note the space
