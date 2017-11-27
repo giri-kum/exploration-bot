@@ -31,9 +31,6 @@
     - a script to log the sensor data needed for SLAM so you can easily create your own log files 
       for testing
 
-= pi_startup.sh
-    - a script that executes the appropriate commands/programs during the startup of the top board
-
 = setenv.sh
     - a script for setting environment variables needed for running Vx applications
-    - run this script before running botgui in a terminal
+    - run this script before running botgui in a terminal on your laptop
