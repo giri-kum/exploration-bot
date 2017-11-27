@@ -37,7 +37,7 @@ int parse_wifi_scan(){
 
 		if(strncmp(buff, "BSS ", 4) == 0){
 			strncpy(tmp_mac, &buff[4], 17);
-			tmp_mac[17] = '\0';
+			tmp_mac[16] = '\0';
 			//printf("%s\n", tmp_mac);
 		}
 
