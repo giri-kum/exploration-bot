@@ -1,7 +1,7 @@
 *.[o]
 bin/*
 lib/*
-src/lcmtypes/*
+src/lcmtypes/*[.cho]
 
 current.map
 *startuplog.*
