@@ -17,6 +17,8 @@ PLUGINS_CLASS := $(addsuffix .class, $(addprefix $(BUILD_PATH)/, $(PLUGINS_NAMES
 
 all: $(ROB550_JAR)
 
+laptop-only: $(ROB550_JAR)
+
 src/rob550/lcmtypes/%.java: ../lcmtypes/%.lcm
 	@echo "\t$<"
 	@lcm-gen -j --jpath=src --jdefaultpkg=rob550.lcmtypes $<

@@ -3,7 +3,7 @@ MBOT_SUBDIRS = src
 MAKEFLAGS += --no-print-directory
 
 laptop-only:
-	@for dir in $(MBOT_SUBDIRS); do \
+	@for dir in $(SUBDIRS); do \
 	echo "[$$dir]"; $(MAKE) -C $$dir laptop-only || exit 2; done
 
 all:
