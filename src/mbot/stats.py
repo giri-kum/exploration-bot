@@ -71,7 +71,7 @@ def handle_lcm(lcm_obj):
         while True:
             lcm_obj.handle()
     except KeyboardInterrupt:
-	print("lcm exit!");
+    print("lcm exit!");
         sys.exit()
 
 def main():
@@ -90,7 +90,7 @@ def main():
     disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
 
     def cleanup(*args):
-	print("SIGTERM CALLED")
+    print("SIGTERM CALLED")
 
         disp.clear()
         disp.display()
@@ -138,60 +138,60 @@ def main():
 
             # Shell scripts for system monitoring from here : https://unix.stackexchange.com/questions/119126/command-to-display-memory-usage-disk-usage-and-cpu-load
             #cmd = "hostname -I | cut -d\' \' -f1"
-	    cmd = "ifconfig | grep \"inet addr:35.0\" | awk '{ print $2 }' | cut -b 6-"
+        cmd = "ifconfig wlan0 | grep \"inet addr:\" | awk '{ print $2 }' | cut -b 6-"
 
-	    try:
-	            IP = subprocess.check_output(cmd, shell = True )
-        	    
-		    if(len(IP) == 0):
-			IP = "initializing..."
-		    else:
-			IP = IP[0:len(IP)-1]
-	    except:
-		    IP = "initializing..."
-		
-	    #averaged over the past minute
+        try:
+                IP = subprocess.check_output(cmd, shell = True )
+                
+            if(len(IP) == 0):
+            IP = "initializing..."
+            else:
+            IP = IP[0:len(IP)-1]
+        except:
+            IP = "initializing..."
+        
+        #averaged over the past minute
             cmd = "top -bn1 | grep load | awk '{printf \"C: %.2f\", $(NF-2)}'"
             CPU = subprocess.check_output(cmd, shell = True )
 
-	    cmd = "free -m | awk 'NR==2{printf \"M: %sMB %.2f%%\", $3,$3*100/$2 }'"
+        cmd = "free -m | awk 'NR==2{printf \"M: %sMB %.2f%%\", $3,$3*100/$2 }'"
             MemUsage = subprocess.check_output(cmd, shell = True )
 
-	    #print(lines)              
+        #print(lines)              
 
-            # Write two lines of text.	    
-	    lines[0] = IP
-	    lines[1] = CPU + " " + MemUsage
+            # Write two lines of text.      
+        lines[0] = IP
+        lines[1] = CPU + " " + MemUsage
 
 
-	    for n in range(0,4):
+        for n in range(0,4):
 
-		if disp_max < draw.textsize(lines[n], font=font)[0]:
-			offset_max[n] = disp_max - draw.textsize(lines[n], font=font)[0] - offset_pad
-		else:
-			offset_max[n] = 0
+        if disp_max < draw.textsize(lines[n], font=font)[0]:
+            offset_max[n] = disp_max - draw.textsize(lines[n], font=font)[0] - offset_pad
+        else:
+            offset_max[n] = 0
 
-	    	draw.text((x[n], top+8*n), lines[n], font=font, fill=255)
+            draw.text((x[n], top+8*n), lines[n], font=font, fill=255)
 
-		if offset_max[n] < 0:
-			if x[n] < offset_max[n]:
-				x[n] = 0
-			elif mod_count == 1:
-				x[n] -= V
+        if offset_max[n] < 0:
+            if x[n] < offset_max[n]:
+                x[n] = 0
+            elif mod_count == 1:
+                x[n] -= V
 
-	    mod_count += 1;
-	    if mod_count > mod_max:
-		mod_count = 0;
+        mod_count += 1;
+        if mod_count > mod_max:
+        mod_count = 0;
 
             # Display image.
             disp.image(image)
             disp.display()
             time.sleep(.1)
-    	
+        
     except KeyboardInterrupt:
-	print("main exception!")
+    print("main exception!")
         disp.clear()
-	disp.display()
+    disp.display()
 
 if __name__ == "__main__":
     main()

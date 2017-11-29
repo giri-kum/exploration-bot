@@ -19,7 +19,7 @@ LIBIMAGESOURCE_OBJS = \
 	image_u8.o \
 	image_u8x3.o \
 	image_util.o \
-        pnm.o
+    pnm.o
 
 BIN_ISVIEW = $(BIN_PATH)/isview
 BIN_ISTEST = istest
