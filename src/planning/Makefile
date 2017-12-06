@@ -17,10 +17,11 @@ $(LIB_PLANNING): $(LIBPLANNING_OBJS) $(LIBDEPS)
 
 BIN_DIST_TEST  = $(BIN_PATH)/obstacle_distance_grid_test
 BIN_ASTAR_TEST = $(BIN_PATH)/astar_test
+BIN_ASTAR_TEST_FILES = $(BIN_PATH)/astar_test_files
 BIN_GRID_GENERATOR = $(BIN_PATH)/grid_generator
 BIN_EXPLORATION = $(BIN_PATH)/exploration
 
-ALL = $(BIN_DIST_TEST) $(BIN_ASTAR_TEST) $(BIN_GRID_GENERATOR) $(BIN_EXPLORATION) $(LIB_PLANNING)
+ALL = $(BIN_DIST_TEST) $(BIN_ASTAR_TEST) $(BIN_ASTAR_TEST_FILES) $(BIN_GRID_GENERATOR) $(BIN_EXPLORATION) $(LIB_PLANNING)
 
 all: $(ALL)
 
@@ -29,6 +30,10 @@ $(BIN_DIST_TEST): obstacle_distance_grid_test.o $(LIBDEPS) $(LIB_PLANNING)
 	@$(CXX) -o $@ $^ $(LIB_PLANNING) $(LDFLAGS) $(CXXFLAGS)
 
 $(BIN_ASTAR_TEST): astar_test.o $(LIBDEPS) $(LIB_PLANNING)
+	@echo "    $@"
+	@$(CXX) -o $@ $^ $(LIB_PLANNING) $(CXXFLAGS) $(LDFLAGS)
+
+$(BIN_ASTAR_TEST_FILES): astar_test_files.o $(LIBDEPS) $(LIB_PLANNING)
 	@echo "    $@"
 	@$(CXX) -o $@ $^ $(LIB_PLANNING) $(CXXFLAGS) $(LDFLAGS)
 	
