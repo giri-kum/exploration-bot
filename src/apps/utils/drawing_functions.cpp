@@ -110,7 +110,25 @@ void draw_occupancy_grid(const OccupancyGrid& grid, vx_buffer_t* buffer)
 
 void draw_particles(const particles_t& particles, vx_buffer_t* buffer)
 {
-    ////////////////// OPTIONAL: Draw particles using any of the mentioned approaches ////////////////////////////
+    int total_points = particles.num_particles;
+    float particle_plot[2 * total_points];
+    std::vector<particle_t> temp;
+    float particle_color[4 * total_points];
+
+    int i = 0;
+    for (auto& temp : particles.particles)
+    {  
+      particle_plot[2*i] = temp.pose.x;   
+      particle_plot[2*i + 1] = temp.pose.y;
+      particle_color[4*i] = 255;
+      particle_color[4*i + 1] = particle_color[4*i + 2] = 0;
+      particle_color[4*i + 2] = temp.weight;
+      i++;
+    }  
+    
+    vx_resc_t *colors = vx_resc_copyf(particle_color, total_points*4);
+    vx_resc_t *estimated_poses = vx_resc_copyf(particle_plot, total_points*2);
+    vx_buffer_add_back(buffer, vxo_points(estimated_poses, total_points, vxo_points_style_multi_colored(colors, 5.0f)));
 }
 
 
