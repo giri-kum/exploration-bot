@@ -3,6 +3,8 @@
 #include <lcmtypes/pose_xyt_t.hpp>
 #include <lcmtypes/lidar_t.hpp>
 #include <lcmtypes/robot_path_t.hpp>
+#include <lcmtypes/particle_t.hpp>
+#include <lcmtypes/particles_t.hpp>
 #include <planning/frontiers.hpp>
 #include <planning/obstacle_distance_grid.hpp>
 #include <slam/occupancy_grid.hpp>
@@ -19,6 +21,8 @@
 #include <vx/vxo_mat.h>
 #include <vx/vxo_mesh.h>
 #include <vx/vxo_robot.h>
+#include <vx/vxo_points.h>
+
 
 
 
