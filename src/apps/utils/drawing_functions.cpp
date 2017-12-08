@@ -126,7 +126,7 @@ void draw_particles(const particles_t& particles, vx_buffer_t* buffer)
       particle_plot[2*i + 1] = temp.pose.y;
       particle_color[4*i] = 255;
       particle_color[4*i + 1] = particle_color[4*i + 2] = 0;
-      particle_color[4*i + 2] = temp.weight;
+      particle_color[4*i + 3] = temp.weight;
       i++;
     }  
     
