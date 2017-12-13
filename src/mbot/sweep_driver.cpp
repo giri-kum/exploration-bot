@@ -72,85 +72,34 @@ int main(int argc, char* argv[]) try {
 
   device.start_scanning();
 
-  int64_t now;
+  int64_t end_time = utime_now();
+  int64_t delta_time;
+  int64_t start_time;
   int pos = 0;
 
-/** for testing speed changes
-int updateHZ_count = 0;
-int speeds[] = {5, 8, 3, 10};
-int speed_at = 0;
-float stab_time = 0.0f;
-uint64_t changed_time = 0;
-int prev_size[] = {0, 0, 0};
-bool stabilized = false;
-**/
-
   while(1) {
+
+    start_time = end_time;
+    //blocks until scan is complete
     const sweep::scan scan = device.get_scan();
-
-//    std::cout << "\nnew scan:\n";
-
-    now = utime_now();
-
+    end_time = utime_now();
+    delta_time = end_time - start_time;
+    
     lidar_t newLidar;
 
-    newLidar.utime = now;
+    newLidar.utime = start_time;
     newLidar.num_ranges = scan.samples.size();
-
     newLidar.ranges.resize(newLidar.num_ranges);
     newLidar.thetas.resize(newLidar.num_ranges);
     newLidar.intensities.resize(newLidar.num_ranges);
     newLidar.times.resize(newLidar.num_ranges);
 
-/**for testing speed changes
-    updateHZ_count++;
-    if(updateHZ_count > 100){
-      updateHZ_count = 0;
-
-      std::cout << "set speed to: " << speeds[speed_at] << "\n";
-
-      device.set_motor_speed(speeds[speed_at]);
-
-      speed_at++;
-      if(speed_at > 3) speed_at = 0;
-
-      prev_size[0] = 0;
-      prev_size[1] = 0;
-      prev_size[2] = 0;
-      changed_time = now;
-
-      stabilized = false;
-    }
-
-
-    if(!stabilized && newLidar.num_ranges == prev_size[0] && prev_size[0] == prev_size[1] && prev_size[1] == prev_size[2]){
-      prev_size[0] = 0;
-      prev_size[1] = 0;
-      prev_size[2] = 0;
-
-      stab_time = float(now - changed_time) / 1000.0f;
-
-      std::cout << "stabilization time: " << stab_time << "\n";
-
-      stabilized = true;
-    }else{
-        prev_size[2] = prev_size[1];
-        prev_size[1] = prev_size[0];
-        prev_size[0] = newLidar.num_ranges;
-    }
-**/
-//    std::cout << newLidar.num_ranges << "\n";
-
     pos = 0;
     for (const sweep::sample& sample : scan.samples) {
-      now = utime_now();
-
       newLidar.ranges[pos] = sample.distance / 100.0f;
       newLidar.thetas[pos] = (2 * M_PI) - (sample.angle * M_PI / 180000.0f);
       newLidar.intensities[pos] = sample.signal_strength;
-      newLidar.times[pos] = now;
-
-//      std::cout << "angle " << newLidar.thetas[pos] << " distance " << newLidar.ranges[pos] << " strength " << newLidar.intensities[pos] << "\n";
+      newLidar.times[pos] = start_time + pos*delta_time;
 
       ++pos;
     }
@@ -160,6 +109,10 @@ bool stabilized = false;
     if (ctrl_c_pressed){ 
       break;
     }
+
+
+
+
   }
 
   device.stop_scanning();
