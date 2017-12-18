@@ -76,11 +76,15 @@ int main(int argc, char** argv)
             //  opti.yaw -> mbot.theta
             pose_xyt_t truePose;
             truePose.utime = utime_now();
-            truePose.x = msg.z;
-            truePose.y = msg.x;
-            truePose.theta = quaternion_to_yaw(msg);
-            lcmInstance.publish(TRUE_POSE_CHANNEL, &truePose);
+            truePose.x = msg.x;
+            truePose.y = msg.z;
+            double roll;
+            double pitch;
+            double yaw;
+            toEulerAngle(msg, roll, pitch, yaw);
+            truePose.theta = yaw;
             
+            lcmInstance.publish(TRUE_POSE_CHANNEL, &truePose);
             std::cout << "OptiPose:" << truePose.x << ',' << truePose.y << ',' << truePose.theta << '\n';
         }
     }

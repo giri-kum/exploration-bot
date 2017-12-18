@@ -266,8 +266,25 @@ std::vector<optitrack_message_t> parse_optitrack_packet_into_messages(const char
 }
 
 
-double quaternion_to_yaw(const optitrack_message_t& msg)
+double quaternion_to_yaw(const optitrack_message_t& msg, double& roll, double& pitch, double& yaw)
 {
-    double sgn = (msg.qw > 0) ? -1.0 : 1.0;
-    return 2.0 * asin(-msg.qy) * sgn;
+// from wikipedia quaternion entry
+    double zsqr = msg.qz * msg.qz;
+
+    // roll (x-axis rotation)
+    double t0 = +2.0 * (msg.qw * msg.qx + msg.qy * msg.qz);
+    double t1 = +1.0 - 2.0 * (msg.qx * msg.qx + zsqr);
+    roll = std::atan2(t0, t1);
+
+    // pitch (y-axis rotation)
+    double t2 = +2.0 * (msg.qw * msg.qz - msg.qy * msg.qx);
+    t2 = t2 > 1.0 ? 1.0 : t2;
+    t2 = t2 < -1.0 ? -1.0 : t2;
+    pitch = std::asin(t2);
+
+    // yaw (z-axis rotation)
+    double t3 = +2.0 * (msg.qw * msg.qy + msg.qx * msg.qz);
+    double t4 = +1.0 - 2.0 * (ysqr + msg.qy * msg.qy);  
+    yaw = std::atan2(t3, t4);
+
 }
