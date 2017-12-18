@@ -284,7 +284,7 @@ double quaternion_to_yaw(const optitrack_message_t& msg, double& roll, double& p
 
     // yaw (z-axis rotation)
     double t3 = +2.0 * (msg.qw * msg.qy + msg.qx * msg.qz);
-    double t4 = +1.0 - 2.0 * (ysqr + msg.qy * msg.qy);  
+    double t4 = +1.0 - 2.0 * (zsqr + msg.qy * msg.qy);  
     yaw = std::atan2(t3, t4);
 
 }
