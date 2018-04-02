@@ -24,6 +24,7 @@ OccupancyGridSLAM::OccupancyGridSLAM(int         numParticles,
 , lcm_(lcmComm)
 , mapUpdateCount_(0)
 {
+
     // Confirm that the mode is valid -- mapping-only and localization-only are not specified
     assert(!(mappingOnlyMode && localizationOnlyMap.length() > 0));
     
