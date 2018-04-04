@@ -63,6 +63,8 @@ private:
     float tip_val;
 
 
+    double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle);
+
 };
 
 #endif // SLAM_SENSOR_MODEL_HPP

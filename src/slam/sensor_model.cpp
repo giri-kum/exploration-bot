@@ -17,18 +17,19 @@ double sample(double mean, double variance) {
 
 
 //raycasting for detecting the expected distance from the pose to the nearest occupied cell in that direction
-double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
-    /*
+double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
+    
 	double z_est = z_max;
 
-	Point<double> start_position = Point<double>(sample.x, sample.y);
-
-	Point<int> curr_cell = global_position_to_grid_cell(const Point<double>& start_position, const Grid& map);
-	Point<double> curr_pos = global_position_to_grid_position(const Point<double>& start_position, const Grid& map);
+    
+	Point<double> start_position = Point<double>(sample.pose.x, sample.pose.y);
+    
+	Point<int> curr_cell = global_position_to_grid_cell(start_position, map);
+	Point<double> curr_pos = global_position_to_grid_position(start_position, map);
 
 	//Point<double> ray_grid = grid_utils.global_position_to_grid_position( Point<double>(sample.x, sample.y), map);
 
-
+    /*
 	//Copied from mapping.cpp
 
 	float deltax;
@@ -94,14 +95,14 @@ double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float an
 
     }
 	//end of copied code
+    */
 
+    Point<double> end_position  = grid_position_to_global_position( curr_pos, map);
 
-    Point<double> end_position  = grid_position_to_global_position(const Point<double>& curr_pos, const Grid& map);
+    z_est = std::hypot(end_position.x - start_position.x, end_position.y - start_position.y);
 
-    z_est = std:hypot(end_position.x - start_position.x, end_position.y - start_position.y);
-    
-	return z_est;*/
     return 1.0; // DEBUG DEBUG DEBUG ***
+    return z_est;
 }
 
 
@@ -140,7 +141,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
 
 	//probability of this point being the right one
     double q = 1;
-    /*
+    
     //iterate through all of the measurements in the scan
     for (int32_t k = 0; k < scan.num_ranges; k++) {
 
@@ -155,13 +156,13 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
 
     	//p = zhit * phit(ztk | xt, m) + zshort * pshort(ztk | xt, m) + zmax * pmax(ztk | xt, m) + zrand * prand(ztk | xt, m)
 
-    	if (0 <= scan.ranges[k] <= z_max) {
-    		float hit_dist = 1 / std::sqrt(2 * PI * std::pow(sigma_hit, 2)  ) * std::exp(-1/2 * std::pow((scan.ranges[k] - z_est), 2) / std::pow(sigma_hit, 2) )
-    		float hit_normalizer = 1 / std::sqrt(2 * PI * std::pow(sigma_hit, 2) ) * ( (-1.25331 * sigma_hit * std::erf(.707107 * (z_est - z_max) / sigma_hit )) - (-1.25331 * sigma_hit * std::erf(.707107 * (z_est) / sigma_hit )) );
+    	if ( (0 <= scan.ranges[k]) && (scan.ranges[k] <= z_max)) {
+    		float hit_dist = 1 / std::sqrt(2 * M_PI * std::pow(sigma_hit, 2)  ) * std::exp(-1/2 * std::pow((scan.ranges[k] - z_est), 2) / std::pow(sigma_hit, 2) );
+    		float hit_normalizer = 1 / std::sqrt(2 * M_PI * std::pow(sigma_hit, 2) ) * ( (-1.25331 * sigma_hit * std::erf(.707107 * (z_est - z_max) / sigma_hit )) - (-1.25331 * sigma_hit * std::erf(.707107 * (z_est) / sigma_hit )) );
     		p_hit = hit_normalizer * hit_dist;
     	}
 
-    	if (0 <= scan.ranges[k] <= z_est) {
+    	if ( (0 <= scan.ranges[k]) && (scan.ranges[k] <= z_est) ) {
     		p_short = 1/(1-std::exp(-lambda_short * z_est)) * lambda_short * std::exp(-lambda_short * z_est);
     	}
 
@@ -176,7 +177,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     	q = q * (z_hit * p_hit + z_max * p_max + z_short * p_short + z_rand * p_rand);
 
 	}
-    */
+    
     return q;
 }
 
