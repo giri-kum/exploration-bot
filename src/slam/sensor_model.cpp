@@ -7,7 +7,7 @@
 
 
 //for generating gaussian distributions
-std::default_random_engine generator; //make sure this is declared only once
+static std::default_random_engine generator; //make sure this is declared only once
 
 double sample(double mean, double variance) {
 	double stddev = std::sqrt(variance);
@@ -18,7 +18,7 @@ double sample(double mean, double variance) {
 
 //raycasting for detecting the expected distance from the pose to the nearest occupied cell in that direction
 double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
-
+    /*
 	double z_est = z_max;
 
 	Point<double> start_position = Point<double>(sample.x, sample.y);
@@ -42,9 +42,9 @@ double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float an
     float self_theta;
     float th_global;
 
-
+    
     // Find quadrant (1-4)
-    th_temp = -PI/4;
+    th_temp = -M_PI/4;
     quad = 1;
     while (th_global - th_temp > PI/2) {
         quad_temp += PI/2;
@@ -99,8 +99,9 @@ double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float an
     Point<double> end_position  = grid_position_to_global_position(const Point<double>& curr_pos, const Grid& map);
 
     z_est = std:hypot(end_position.x - start_position.x, end_position.y - start_position.y);
-
-	return z_est;
+    
+	return z_est;*/
+    return 1.0; // DEBUG DEBUG DEBUG ***
 }
 
 
@@ -139,7 +140,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
 
 	//probability of this point being the right one
     double q = 1;
-
+    /*
     //iterate through all of the measurements in the scan
     for (int32_t k = 0; k < scan.num_ranges; k++) {
 
@@ -175,7 +176,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     	q = q * (z_hit * p_hit + z_max * p_max + z_short * p_short + z_rand * p_rand);
 
 	}
-
+    */
     return q;
 }
 

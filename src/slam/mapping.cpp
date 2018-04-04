@@ -36,7 +36,7 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
     MovingLaserScan moveLaser(scan, prevPose, pose);
     adjusted_ray_t adjLaser;
 
-    std::cout << pose.x << " " << pose.y << std::endl;
+    std::cout << "From mapping: Pose (x,y) = "<< pose.x << " " << pose.y << std::endl;
 
     // Self Variables
     //float self_theta;    // stores self heading 

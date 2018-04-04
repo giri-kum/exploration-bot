@@ -15,6 +15,12 @@ ParticleFilter::ParticleFilter(int numParticles)
 void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
 {
     ///////////// TODO: Implement your method for initializing the particles in the particle filter /////////////////
+    for (int i = 0; i < kNumParticles_; i++) {
+        posterior_[i].parent_pose = pose;
+        posterior_[i].pose = pose;
+        posterior_[i].weight = 1 / kNumParticles_;
+    }
+    
 }
 
 
@@ -25,7 +31,12 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
     // Only update the particles if motion was detected. If the robot didn't move, then
     // obviously don't do anything.
     bool hasRobotMoved = actionModel_.updateAction(odometry);
-    
+    for (int i = 0; i < kNumParticles_; i++) 
+    {
+        posterior_[i] = actionModel_.applyAction(posterior_[i]);
+        posterior_[i].weight = 1 / kNumParticles_;
+    }
+    hasRobotMoved = false; // added to debug action model alone without sensor model: remove this assignment later
     if(hasRobotMoved)
     {
         auto prior = resamplePosteriorDistribution();
