@@ -23,8 +23,7 @@ Mapping::Mapping(float maxLaserDistance, int8_t hitOdds, int8_t missOdds)
 
 
 void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGrid& map)
-{   
-
+{
     // Local Variables
     int i;
     int quad;           // quadrants 1-4 (shifted by -PI/4)
@@ -98,6 +97,7 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
         // Get final position coordinates
         las_global.x = self_global.x + r_las * cos(th_global);
         las_global.y = self_global.y + r_las * sin(th_global);
+
 
         // Convert final position to cell
         las_cell = global_position_to_grid_cell(las_global, map);
@@ -187,4 +187,5 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
 
     // Save previous pose
     prevPose = pose;
+
 }
