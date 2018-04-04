@@ -36,8 +36,6 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
     MovingLaserScan moveLaser(scan, prevPose, pose);
     adjusted_ray_t adjLaser;
 
-    std::cout << "From mapping: Pose (x,y) = "<< pose.x << " " << pose.y << std::endl;
-
     // Self Variables
     //float self_theta;    // stores self heading 
 
@@ -71,7 +69,6 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
     map.operator()(100,130) = -127;
     map.operator()(100,131) = 127;
 */
-
     
     // Iterate through scans
     for (i = 0; i < scan.num_ranges; i++) {
@@ -83,6 +80,9 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
         adjLaser = moveLaser[i];
         r_las = adjLaser.range;
         th_global = adjLaser.theta;
+
+        // Max laser range
+        if (r_las > kMaxLaserDistance_) r_las = kMaxLaserDistance_;
 
         //r_las = scan.ranges[i];
         //th_las = scan.thetas[i];
@@ -98,34 +98,48 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
         las_global.x = self_global.x + r_las * cos(th_global);
         las_global.y = self_global.y + r_las * sin(th_global);
 
-
         // Convert final position to cell
         las_cell = global_position_to_grid_cell(las_global, map);
 
         // Convert self pose to cell
         self_cell = global_position_to_grid_cell(self_global, map);
 
+        //std::cout << "las_cell (x, y): " << las_cell.x << ", " << las_cell.y << " self_cell (x, y): " << self_cell.x << ", " << self_cell.y << std::endl;
+
         // Find quadrant (1-4)
         //th_temp = -M_PI/4;
         //quad = 1;
         //while (th_global - th_temp > M_PI/2) {
         //    th_temp += M_PI/2;
-         //   quad += 1;
+        //    quad += 1;
         //}
-        quad = 1;
-        if (th_global < M_PI/4 && th_global > -M_PI/4) quad = 1;
-        else if (th_global < 3*M_PI/4 && th_global > M_PI/4) quad = 2;
-        else if (th_global > 3*M_PI/4 || th_global < -3*M_PI/4) quad = 3;
-        else if (th_global > -3*M_PI/4 && th_global < -M_PI/4) quad = 4;
-        //std::cout << "th_global: " << th_global << " quad: " << quad << std::endl;
-
+        
+        // Determine quadrant (1-4)
+        quad = 0;
+        if (th_global < M_PI/4 && th_global >= -M_PI/4) quad = 1;
+        else if (th_global < 3*M_PI/4 && th_global >= M_PI/4) quad = 2;
+        else if (th_global >= 3*M_PI/4 || th_global < -3*M_PI/4) quad = 3;
+        else if (th_global >= -3*M_PI/4 && th_global < -M_PI/4) quad = 4;
+        //std::cout << "th_global: " << th_global << " quad: " << quad << "cell: " << las_cell.x << ", " << las_cell.y << std::endl;
+        //if (quad == 0) std::cout << "quad is zero!" << std::endl;
+        if (quad == 0) std::cout << "error! quad == 0" << std::endl;
+        
         // Get properties of line
         deltax = las_cell.x - self_cell.x; //**should not be zero**
         deltay = las_cell.y - self_cell.y;
 
+        // Line with slope of 1
+        //if (deltay == deltax) quad = 1;
+
         // Boundary checking
-        if (deltax == 0) deltaerr = 0;
-        else deltaerr = fabs(deltay / deltax);
+        if (quad == 1 || quad == 3) {
+            if (deltax == 0) deltaerr = 0;
+            else deltaerr = fabs(deltay / deltax);
+        }
+        else if (quad == 2 || quad == 4) {
+            if (deltay == 0) deltaerr = 0;
+            else deltaerr = fabs(deltax / deltay);
+        }
 
         // Update all cells along line with Bresenham's Line Algorithm
         x = self_cell.x; // start at self x
@@ -134,42 +148,43 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
 
         not_done = 1;
         
-        if (quad != 0) {
-            while (not_done) {
-                
-                // Update current cell **check for bugs, possible wrong time to update**
-                //map(x, y) += kMissOdds_;
+        // Loop until line is complete
+        while (not_done) {
+            
+            // Update current cell **check for bugs, possible wrong time to update**
+            //map(x, y) += kMissOdds_;
+            if (map.isCellInGrid(x,y)) {
                 if (map.operator()(x, y) - kMissOdds_ < -127) map.operator()(x, y) = -127;
                 else map.operator()(x,y) -= kMissOdds_;
+            }
 
+            //std::cout << th_global << std::endl;
 
-                //std::cout << th_global << std::endl;
+            // Update error
+            error += deltaerr;
+            while (error >= 0.5) {
+                if (quad == 1 || quad == 3) y += (deltay>0)?1:-1;
+                else x += (deltax>0)?1:-1;
+                error -= 1;
+                //std::cout << "don't seg fault! error = " << error << std::endl;
+            }
 
-                // Update error
-                error += deltaerr;
-                while (error >= 0.5) {
-                    if (quad == 1 || quad == 3) y += (deltay>0)?1:-1;
-                    else x += (deltax>0)?1:-1;
-                    error -= 1;
-                }
-
-                // Increment and check if done based on quadrant
-                if (quad == 1) {
-                    x++;
-                    not_done = x < las_cell.x;
-                }
-                else if (quad == 2) {
-                    y--;
-                    not_done = y > las_cell.y;
-                }
-                else if (quad == 3) {
-                    x--;
-                    not_done = x > las_cell.x;
-                }
-                else if (quad == 4) {
-                    y++;
-                    not_done = y < las_cell.y;
-                }
+            // Increment and check if done based on quadrant
+            if (quad == 1) {
+                x++;
+                not_done = x < las_cell.x;
+            }
+            else if (quad == 2) {
+                y++;
+                not_done = y < las_cell.y;
+            }
+            else if (quad == 3) {
+                x--;
+                not_done = x > las_cell.x;
+            }
+            else if (quad == 4) {
+                y--;
+                not_done = y > las_cell.y;
             }
         }
         
@@ -177,12 +192,14 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
         //map(las_cell.x, las_cell.y) += kHitOdds_;
         //map.operator()(las_cell.x, las_cell.y) = -127;
 
-        if (map.operator()(las_cell.x, las_cell.y) + kHitOdds_ > 127) map.operator()(las_cell.x, las_cell.y) = 127;
-        else map.operator()(las_cell.x, las_cell.y) += kHitOdds_;
+        // Increase the odds of the point where the laser terminates
+        if (map.isCellInGrid(las_cell.x, las_cell.y)) {
+            if (map.operator()(las_cell.x, las_cell.y) + kHitOdds_ > 127) map.operator()(las_cell.x, las_cell.y) = 127;
+            else map.operator()(las_cell.x, las_cell.y) += kHitOdds_;
+        }
         //int8_t cell_out = map.logOdds(las_cell.x, las_cell.y);
         //std::cout << (int)map.logOdds(las_cell.x, las_cell.y) << std::endl;
 
-        
     }
 
     // Save previous pose
