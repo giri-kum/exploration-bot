@@ -39,6 +39,28 @@ public:
 private:
     
     ///////// TODO: Add any private members for your SensorModel ///////////////////
+
+    //model paramaters
+
+    float z_hit;
+
+    //max sensor range
+    float z_max;
+
+    float z_short;
+    float z_rand;
+    float lambda_short;
+    float sigma_hit;
+
+    //sensor offsets from robot reference frame
+    float x_sens;
+    float y_sens;
+    float theta_sens;
+
+    //the value which we use to compare whether a cell is occupied or not
+    float tip_val;
+
+
 };
 
 #endif // SLAM_SENSOR_MODEL_HPP
