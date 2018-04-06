@@ -23,6 +23,19 @@ struct SearchParams
                                     ///< for cellDistance > minDistanceToObstacle && cellDistance < maxDistanceWithCost
 };
 
+/**
+* Node for path plan
+* -JS
+*/
+struct Node
+{
+    pose_xyt_t pose;    // position of this node
+    float cost;         // cost of this node
+    int pind;           // path index
+
+    Node(pose_xyt_t pose_in, float cost_in, int pind_in) : pose(pose_in), cost(cost_in), pind(pind_in) {}
+};
+
 
 /**
 * search_for_path uses an A* search to find a path from the start to goal poses. The search assumes a circular robot
