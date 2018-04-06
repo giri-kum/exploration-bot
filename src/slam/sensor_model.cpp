@@ -48,11 +48,16 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     return q
     */
 
+
+
 	//probability of this point being the right one
     double q = 1;
     
     //iterate through all of the measurements in the scan
     for (int32_t k = 0; k < scan.num_ranges; k++) {
+
+        //print out for calibration
+        std::cout << "theta " << scan.thetas[k] << " dist: " << scan.ranges[k] << std::endl;
 
     	//probabilities of for actual hit, max range, short, or random noise
     	double p_hit = 0;
@@ -118,7 +123,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     int th_temp;
     float self_theta;
     float th_global = angle + sample.pose.theta;
-    /*
+
     
     // Determine quadrant (1-4)
     quad = 0;
@@ -133,8 +138,26 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
     
     // Get properties of line
-    deltax = las_cell.x - self_cell.x; //**should not be zero**
-    deltay = las_cell.y - self_cell.y;
+    switch(quad) {
+        case 1 :    deltax = map.widthInCells - curr_cell.x;
+                    deltay = atan(th_global) * deltax;
+                    break;
+
+        case 2:     deltay = map.heightInCells - curr_cell.y;   
+                    deltax = deltay / atan(th_global);
+                    break;
+
+        case 3:     deltax = -map.widthInCells - curr_cell.x;
+                    deltay = atan(th_global) * deltax;
+                    break;
+
+        case 4:     deltay = -map.heightInCells - curr_cell.y;   
+                    deltax = deltay / atan(th_global);
+                    break;
+    }
+
+    //deltax = las_cell.x - self_cell.x; //**should not be zero**
+    //deltay = las_cell.y - self_cell.y;
     deltaerr = fabs(deltay / deltax);
 
 
@@ -150,8 +173,8 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     }
 
     // Update all cells along line with Bresenham's Line Algorithm
-    x = self_cell.x; // start at self x
-    y = self_cell.y;  // start at self y
+    x = curr_cell.x; // start at self x
+    y = curr_cell.y;  // start at self y
     error = 0; // no error at start
 
 
@@ -187,13 +210,13 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
         }
 
         //update cell
-        curr_cell.x = 
-        curr_cell.y = 
+        curr_cell.x = x;
+        curr_cell.y = y;
 
 
     }
     //end of copied code
-    */
+
 
     Point<double> end_position  = grid_position_to_global_position( curr_pos, map);
 
