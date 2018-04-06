@@ -44,11 +44,10 @@ private:
 
     //model paramaters
 
-    float z_hit;
-
     //max sensor range
     float z_max;
 
+    float z_hit;
     float z_short;
     float z_rand;
     float lambda_short;
@@ -62,7 +61,7 @@ private:
     //the value which we use to compare whether a cell is occupied or not
     float tip_val;
 
-
+    //calculating the distance to obstacle using raycasting
     double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle);
 
 };
