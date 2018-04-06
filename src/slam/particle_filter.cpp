@@ -42,10 +42,10 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
             posterior_[i].weight = 1 / kNumParticles_;
         }
        
-//        auto prior = resamplePosteriorDistribution();
-//        auto proposal = computeProposalDistribution(prior);
-//        posterior_ = computeNormalizedPosterior(proposal, laser, map);
-//        posteriorPose_ = estimatePosteriorPose(posterior_);
+//        auto prior = resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights
+//        auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
+//        posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
+//        posteriorPose_ = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
     }
     
     posteriorPose_.utime = odometry.utime;
