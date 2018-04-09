@@ -129,8 +129,8 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     int x;
     int y;
     int quad;
-    int th_temp;
-    float self_theta;
+    //int th_temp;
+    //float self_theta;
     float th_global = angle + sample.pose.theta;
 
     
@@ -149,20 +149,24 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     // Get properties of line
     switch(quad) {
         
-        case 1 :    deltax = map.widthInCells - curr_cell.x;
+        case 1 :    deltax = map.widthInCells() - curr_cell.x;
                     deltay = atan(th_global) * deltax;
                     break;
 
-        case 2:     deltay = map.heightInCells - curr_cell.y;   
+        case 2:     deltay = map.heightInCells() - curr_cell.y;   
                     deltax = deltay / atan(th_global);
                     break;
 
-        case 3:     deltax = -map.widthInCells - curr_cell.x;
+        case 3:     deltax = -1*map.widthInCells() - curr_cell.x;
                     deltay = atan(th_global) * deltax;
                     break;
 
-        case 4:     deltay = -map.heightInCells - curr_cell.y;   
+        case 4:     deltay = -1*map.heightInCells() - curr_cell.y;   
                     deltax = deltay / atan(th_global);
+                    break;
+        default:
+                    deltax = 1;
+                    deltay = 1;
                     break;
     }
 
