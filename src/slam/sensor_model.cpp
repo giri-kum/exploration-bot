@@ -207,15 +207,23 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
         // Increment and check if done based on quadrant
         if (quad == 1) {
             x++;
+            //update pos
+            curr_pos.x = curr_pos.x + map.cellsPerMeter();
         }
         else if (quad == 2) {
             y++;
+            //update pos
+            curr_pos.y = curr_pos.y + map.cellsPerMeter();
         }
         else if (quad == 3) {
             x--;
+            //update pos
+            curr_pos.x = curr_pos.x - map.cellsPerMeter();
         }
         else if (quad == 4) {
             y--;
+            //update pos
+            curr_pos.y = curr_pos.y - map.cellsPerMeter();
         }
 
         //if the cell is occupied break
@@ -228,6 +236,8 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
         curr_cell.y = y;
 
 
+
+
     }
     //end of copied code
 
@@ -236,7 +246,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
     z_est = std::hypot(end_position.x - start_position.x, end_position.y - start_position.y);
 
-    return 1.0; // DEBUG DEBUG DEBUG ***
     return z_est;
+    return 1.0; // DEBUG DEBUG DEBUG ***
 }
 
