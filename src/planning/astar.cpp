@@ -18,29 +18,40 @@ robot_path_t search_for_path(pose_xyt_t start,
     Node nstart(start, 0, -1);
     Node ngoal(goal, 0, -1);
 
+    // Set motion model: dx, dy, cost
+    motion[8][3] = {{1, 0, 1},
+              {0, 1, 1},
+              {-1, 0, 1},
+              {0, -1, 1},
+              {-1, -1, sqrt(2)},
+              {-1, 1, sqrt(2)},
+              {1, -1, sqrt(2)},
+              {1, 1, sqrt(2)}};
 
+    // Initialize open set and closed set
+    openset;
+    closedset;
+
+    // Plan the path
+    while(1) {
+
+
+
+
+
+
+    }
 
     // Set path size
     path.path_length = path.path.size();
     return path;
 }
 
+float calc_h(ngoal, x, y) {
 
 
+}
 
-
-
-float * get_motion_model() {
-    // dx, dy, cost
-    motion = {[1, 0, 1],
-              [0, 1, 1],
-              [-1, 0, 1],
-              [0, -1, 1],
-              [-1, -1, sqrt(2)],
-              [-1, 1, sqrt(2)],
-              [1, -1, sqrt(2)],
-              [1, 1, sqrt(2)]};
-
-	return motion
-
+bool verify_node() {
+  
 }

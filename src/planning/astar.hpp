@@ -3,6 +3,8 @@
 
 #include <lcmtypes/robot_path_t.hpp>
 #include <lcmtypes/pose_xyt_t.hpp>
+#include <queue>
+#include <math.h>
 
 class ObstacleDistanceGrid;
 
@@ -51,5 +53,11 @@ robot_path_t search_for_path(pose_xyt_t start,
                              pose_xyt_t goal, 
                              const ObstacleDistanceGrid& distances,
                              const SearchParams& params);
+
+// Calculate heuristic
+float calc_h(ngoal, x, y);
+
+// Ensure node is inside the map and not on an obstacle
+bool verify_node();
 
 #endif // PLANNING_ASTAR_HPP
