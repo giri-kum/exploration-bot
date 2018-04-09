@@ -46,7 +46,6 @@ private:
 
     //max sensor range
     float z_max;
-
     float z_hit;
     float z_short;
     float z_rand;

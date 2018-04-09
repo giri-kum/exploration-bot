@@ -19,13 +19,22 @@ double sample(double mean, double variance) {
 SensorModel::SensorModel(void)
 {
     ///////// TODO: Handle any initialization needed for your sensor model
-    z_hit = 0;
+
+    //seems to dominate, in relaity probaly more like .95
+    z_hit = 1;
+
+    //need to pull from data sheet
     z_max = 100;
+
+    //both these seem to be very small
     z_short = 0;
     z_rand = 0;
 
-    lambda_short = 0;
-    sigma_hit = 0;
+    //arbitrarily small
+    lambda_short = .000001;
+
+    //seems reasonable based on data
+    sigma_hit = .001;
 
     x_sens = 0;
     y_sens = 0;
@@ -139,6 +148,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     
     // Get properties of line
     switch(quad) {
+        
         case 1 :    deltax = map.widthInCells - curr_cell.x;
                     deltay = atan(th_global) * deltax;
                     break;
