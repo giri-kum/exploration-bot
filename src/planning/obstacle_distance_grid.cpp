@@ -20,11 +20,33 @@ void ObstacleDistanceGrid::setDistances(const OccupancyGrid& map)
     // Local Variables
     int i;
     int j;
+    int k;
+    int m;
+    float min_dist;
+    float temp_dist;
+    float x_tmp;
+    float y_tmp;
 
     // Loop through grid and compute each distance for each cell
-    for(i = 0; i < width; i++) {
-        for (j = 0; j < height; j++) {
+    for(i = 0; i < height_; i++) {
+        for (j = 0; j < width_; j++) {
 
+            min_dist = 10000000; // initialize to a large number
+            // Check every other cell
+            for(k = 0; k < height_; k++) {
+                for (m = 0; m < width_; m++) {
+                    // If the cell is an obstacle
+                    if (map(k,m) > 0) {
+                        // Find the distance between cells
+                        y_tmp = (i - k)*metersPerCell_;
+                        x_tmp = (j - m)*metersPerCell_;
+                        temp_dist = sqrt(pow(x_tmp, 2) + pow(y_tmp, 2));
+                        if (temp_dist < min_dist) min_dist = temp_dist;
+                    }
+                }
+            }
+            // Set cell to min_dist
+            distance(i, j) = min_dist;
         }
     }
 }
