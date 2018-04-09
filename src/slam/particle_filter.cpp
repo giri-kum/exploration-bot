@@ -120,10 +120,17 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
     /////////// TODO: Implement your algorithm for computing the normalized posterior distribution using the 
     ///////////       particles in the proposal distribution
     std::vector<particle_t> posterior(kNumParticles_);
+    float sum = 0;
     for (int i = 0; i < kNumParticles_; i++) 
     {
         posterior[i] = proposal[i];
-        posterior[i].weight = (float) 1 / kNumParticles_;
+        posterior[i].weight = sensorModel_.likelihood(proposal[i], laser, map);
+        //posterior[i].weight = (float) 1 / kNumParticles_; // Get weights from sensor model here
+        sum = sum + posterior[i].weight;
+    }
+    for (int i = 0; i < kNumParticles_; i++) // Normalization
+    {
+        posterior[i].weight = posterior[i].weight/sum;
     }
 //    cout<<"From computeNormalizedPosterior " <<posterior[0].pose.x<<" " << proposal[0].pose.x<<endl;
     return posterior;

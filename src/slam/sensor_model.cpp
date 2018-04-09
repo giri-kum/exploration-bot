@@ -24,7 +24,7 @@ SensorModel::SensorModel(void)
     //Initialization for sensor model
 
     //seems to dominate, in relaity probaly more like .95
-    z_hit = 1;
+    z_hit = .95;
 
     //pulled from data sheet
     z_max = 40;
@@ -255,7 +255,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
 
 //dumb raycast that just does simple math to test
-double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
+double SensorModel::simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
 
     double z_est = z_max;
     float th_global = angle + sample.pose.theta + theta_sens;
@@ -285,8 +285,8 @@ double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, f
 
     float hdist = map.metersPerCell();
 
-    float deltax = std::abs(std:cos(th_global)) * hdist;
-    float deltay = std::abs(std:sin(th_global)) * hdist;
+    float deltax = std::abs(std::cos(th_global)) * hdist;
+    float deltay = std::abs(std::sin(th_global)) * hdist;
 
 
     while (map.isCellInGrid(curr_cell.x, curr_cell.y)) {
@@ -295,12 +295,13 @@ double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, f
         curr_cell = global_position_to_grid_cell(curr_pos, map);
 
         //if the cell is occupied break
-        if ( map.operator()(x, y) > tip_val) {
+        if ( map.operator()(curr_cell.x, curr_cell.y) > tip_val) {
             break;
         }
 
     }
 
-    return std::hypot( map.metersPerCell() * (curr_cell.x - start_cell.x), map.metersPerCell() * (curr_cell.y - start_cell.y) );
+    z_est = std::hypot( map.metersPerCell() * (curr_cell.x - start_cell.x), map.metersPerCell() * (curr_cell.y - start_cell.y) );
+    return z_est;
 }
 
