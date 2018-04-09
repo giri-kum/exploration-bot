@@ -1,12 +1,14 @@
 #include <slam/sensor_model.hpp>
-#include <slam/moving_laser_scan.hpp>
+//#include <slam/moving_laser_scan.hpp>
 #include <slam/occupancy_grid.hpp>
 #include <lcmtypes/particle_t.hpp>
 #include <common/grid_utils.hpp>
+#include <slam/moving_laser_scan.hpp>
 #include <random>
 
 
-//for generating gaussian distributions
+//for generating gaussian distributions, unused
+/*
 static std::default_random_engine generator; //make sure this is declared only once
 
 double sample(double mean, double variance) {
@@ -14,44 +16,47 @@ double sample(double mean, double variance) {
 	std::normal_distribution<double> distribution(mean,stddev);
 	return distribution(generator);
     }
+*/
 
 
 SensorModel::SensorModel(void)
 {
-    ///////// TODO: Handle any initialization needed for your sensor model
+    //Initialization for sensor model
 
     //seems to dominate, in relaity probaly more like .95
     z_hit = 1;
 
-    //need to pull from data sheet
-    z_max = 100;
+    //pulled from data sheet
+    z_max = 40;
 
     //both these seem to be very small
-    z_short = 0;
+    z_short = .0018;
     z_rand = 0;
 
     //arbitrarily small
     lambda_short = .000001;
 
-    //seems reasonable based on data
-    sigma_hit = .001;
+    //based on data
+    sigma_hit = .0022;
 
     x_sens = 0;
     y_sens = 0;
     theta_sens = 0;
 
     tip_val = 0;
+
+    n_samples = 10;
 }
 
 
 double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, const OccupancyGrid& map)
 {
-    ///////////// TODO: Implement your sensor model for calculating the likelihood of a particle given a laser scan //////////
+    //Sensor model for calculating the likelihood of a particle given a laser scan
 
     /*Pseudocode for beam range finding model
     q=1
     for all measurements m in scan do
-    	use ray casting to cunpute noise free range for given location and direction
+    	use ray casting to compute noise free range for given location and direction
     	determine probability p of each individual measurement
     	q=q*p
     return q
@@ -63,7 +68,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     double q = 1;
     
     //iterate through all of the measurements in the scan
-    for (int32_t k = 0; k < scan.num_ranges; k++) {
+    for (int32_t k = 0; k < scan.num_ranges; k+=(int)(scan.num_ranges/n_samples) ) {
 
         //print out for calibration
         std::cout << "theta " << scan.thetas[k] << " dist: " << scan.ranges[k] << std::endl;
@@ -76,6 +81,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
 
     	//calculate z_tk*
     	double z_est = raycast_dist(sample, map, scan.thetas[k]);
+        //double simp_z_est = simple_raycast_dist(sample, map, scan.thetas[k]);
 
     	//p = zhit * phit(ztk | xt, m) + zshort * pshort(ztk | xt, m) + zmax * pmax(ztk | xt, m) + zrand * prand(ztk | xt, m)
 
@@ -131,7 +137,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     int quad;
     //int th_temp;
     //float self_theta;
-    float th_global = angle + sample.pose.theta;
+    float th_global = angle + sample.pose.theta + theta_sens;
 
     
     // Determine quadrant (1-4)
@@ -170,9 +176,9 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
                     break;
     }
 
-    //deltax = las_cell.x - self_cell.x; //**should not be zero**
-    //deltay = las_cell.y - self_cell.y;
-    deltaerr = fabs(deltay / deltax);
+    // Boundary checking
+    if (deltax == 0) deltaerr = 0;
+    else deltaerr = fabs(deltay / deltax);
 
 
 
@@ -235,9 +241,6 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
         curr_cell.x = x;
         curr_cell.y = y;
 
-
-
-
     }
     //end of copied code
 
@@ -248,5 +251,56 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
     return z_est;
     return 1.0; // DEBUG DEBUG DEBUG ***
+}
+
+
+//dumb raycast that just does simple math to test
+double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
+
+    double z_est = z_max;
+    float th_global = angle + sample.pose.theta + theta_sens;
+
+    Point<double> start_position = Point<double>(sample.pose.x, sample.pose.y);
+    Point<double> curr_pos = global_position_to_grid_position(start_position, map);
+    Point<int> start_cell = global_position_to_grid_cell(start_position, map);
+    Point<int> curr_cell = global_position_to_grid_cell(curr_pos, map);
+
+
+    int xdir = 0;
+    int ydir = 0;
+
+    if ((th_global >= 0) && (th_global <M_PI/2)) {
+        xdir = 1;
+        ydir = 1;
+    } else if ((th_global >= M_PI/2) && (th_global < M_PI)) {
+        xdir = -1;
+        ydir = 1;
+    } else if ((th_global >= M_PI) && (th_global < 3*M_PI/2)) {
+        xdir = -1;
+        ydir = -1;
+    } else if ((th_global >= 3*M_PI/2) && (th_global < 2*M_PI)) {
+        xdir = 1;
+        ydir = -1;
+    }
+
+    float hdist = map.metersPerCell();
+
+    float deltax = std::abs(std:cos(th_global)) * hdist;
+    float deltay = std::abs(std:sin(th_global)) * hdist;
+
+
+    while (map.isCellInGrid(curr_cell.x, curr_cell.y)) {
+        curr_pos.x += xdir * deltax;
+        curr_pos.y += ydir * deltay;
+        curr_cell = global_position_to_grid_cell(curr_pos, map);
+
+        //if the cell is occupied break
+        if ( map.operator()(x, y) > tip_val) {
+            break;
+        }
+
+    }
+
+    return std::hypot( map.metersPerCell() * (curr_cell.x - start_cell.x), map.metersPerCell() * (curr_cell.y - start_cell.y) );
 }
 

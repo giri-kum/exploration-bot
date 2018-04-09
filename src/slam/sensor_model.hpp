@@ -60,8 +60,14 @@ private:
     //the value which we use to compare whether a cell is occupied or not
     float tip_val;
 
+    //number of scans to use
+    int n_samples;
+
     //calculating the distance to obstacle using raycasting
     double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle);
+
+    //calculating the distance to obstacle using fake raycasting
+    double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle);
 
 };
 
