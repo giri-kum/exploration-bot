@@ -18,6 +18,15 @@ robot_path_t search_for_path(pose_xyt_t start,
     Node nstart(start, 0, -1);
     Node ngoal(goal, 0, -1);
 
+    float motion[8][3] = {{1, 0, 1},
+          {0, 1, 1},
+          {-1, 0, 1},
+          {0, -1, 1},
+          {-1, -1, sqrt(2)},
+          {-1, 1, sqrt(2)},
+          {1, -1, sqrt(2)},
+          {1, 1, sqrt(2)}};
+
 
 
     // Set path size
@@ -29,18 +38,18 @@ robot_path_t search_for_path(pose_xyt_t start,
 
 
 
-
+/*
 float * get_motion_model() {
     // dx, dy, cost
-    motion = {[1, 0, 1],
-              [0, 1, 1],
-              [-1, 0, 1],
-              [0, -1, 1],
-              [-1, -1, sqrt(2)],
-              [-1, 1, sqrt(2)],
-              [1, -1, sqrt(2)],
-              [1, 1, sqrt(2)]};
+    float motion[8][3] = {{1, 0, 1},
+              {0, 1, 1},
+              {-1, 0, 1},
+              {0, -1, 1},
+              {-1, -1, sqrt(2)},
+              {-1, 1, sqrt(2)},
+              {1, -1, sqrt(2)},
+              {1, 1, sqrt(2)}};
 
-	return motion
+	return motion;
 
-}
+}*/
