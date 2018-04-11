@@ -31,11 +31,17 @@ struct SearchParams
 */
 struct Node
 {
-    pose_xyt_t pose;    // position of this node
+    int x;    // x position of this node
+    int y;    // y position of this node
     float cost;         // cost of this node
     int pind;           // path index
 
-    Node(pose_xyt_t pose_in, float cost_in, int pind_in) : pose(pose_in), cost(cost_in), pind(pind_in) {}
+    Node() : x(0), y(0), cost(0), pind(0) {}
+    Node(int x_in, int y_in, float cost_in, int pind_in) : x(x_in), y(y_in), cost(cost_in), pind(pind_in) {}
+
+    bool operator()( const Node* a, const Node* b ) const {
+        return a->cost < b->cost;
+    }
 };
 
 
@@ -55,9 +61,9 @@ robot_path_t search_for_path(pose_xyt_t start,
                              const SearchParams& params);
 
 // Calculate heuristic
-float calc_h(ngoal, x, y);
+float calc_h(Node ngoal, int x, int y);
 
-// Ensure node is inside the map and not on an obstacle
-bool verify_node();
+// Calculate final path
+void calc_final_path(Node ngoal, std::vector<Node> closedset, robot_path_t * path);
 
 #endif // PLANNING_ASTAR_HPP
