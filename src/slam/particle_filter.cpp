@@ -96,6 +96,8 @@ std::vector<particle_t> ParticleFilter::resamplePosteriorDistribution(void)
         threshold = threshold + (float) (1/kNumParticles_);
     }
 //    cout<<"From resamplePosteriorDistribution " <<prior[0].pose.x<<" " << posterior_[0].pose.x<<endl;
+    
+//    prior = posterior_; don't uncomment this unless u want to remove resampling
     return prior;
 }
 
@@ -125,6 +127,8 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
     {
         posterior[i] = proposal[i];
         posterior[i].weight = sensorModel_.likelihood(proposal[i], laser, map);
+        std::cout << "i   "  << i << " "<<posterior[i].pose.x<< " "<<posterior[i].pose.y<<" "<<posterior[i].pose.theta<<" "<<posterior[i].pose.utime; 
+        std::cout << "   weight  " << posterior[i].weight << std::endl;
         //posterior[i].weight = (float) 1 / kNumParticles_; // Get weights from sensor model here
         sum = sum + posterior[i].weight;
     }
