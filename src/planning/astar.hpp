@@ -5,6 +5,7 @@
 #include <lcmtypes/pose_xyt_t.hpp>
 #include <queue>
 #include <math.h>
+#include <map>
 
 class ObstacleDistanceGrid;
 
@@ -63,7 +64,10 @@ robot_path_t search_for_path(pose_xyt_t start,
 // Calculate heuristic
 float calc_h(Node ngoal, int x, int y);
 
+// Calculate node id
+int calc_id(int x, int y, int width);
+
 // Calculate final path
-void calc_final_path(Node ngoal, std::vector<Node> closedset, robot_path_t * path);
+void calc_final_path(Node ngoal, std::map<int, Node> closedset, robot_path_t * path);
 
 #endif // PLANNING_ASTAR_HPP
