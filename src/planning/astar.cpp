@@ -8,12 +8,11 @@ robot_path_t search_for_path(pose_xyt_t start,
                              const SearchParams& params)
 {     
     // Local Variables
-    uint i;
-    uint j;
-    uint motion_len;
-    int stop; 
-    int n_ind;  
-    int p_ind;
+    uint i;             // iterator uint
+    uint j;             // iterator uint
+    int stop;           // signals loops to exit
+    int n_ind;          // node index
+    int p_ind;          // parent index
 
     Node current;
     Node new_node;
@@ -25,20 +24,24 @@ robot_path_t search_for_path(pose_xyt_t start,
     int goalCellx = (goal.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter();
     int goalCelly = (goal.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter();
 
+    // Heuristic variables
+    float check_h;
+    float current_h;
+
     // Initialize output
     robot_path_t path;
     path.utime = start.utime;
-    //path.path.push_back(start);
+    path.path.push_back(start);     // add first pose
 
     // Initialize start and end nodes
     Node nstart(startCellx, startCelly, 0, -1);
     Node ngoal(goalCellx, goalCelly, 0, -1);
 
-    std::cout << "start: (" << nstart.x << ", " << nstart.y << ")\n";
-    std::cout << "goal: (" << ngoal.x << ", " << ngoal.y << ")\n";
+    //std::cout << "start: (" << nstart.x << ", " << nstart.y << ")\n";
+    //std::cout << "goal: (" << ngoal.x << ", " << ngoal.y << ")\n";
 
     // Motion model: x, y, cost
-    motion_len = 8;
+    uint motion_len = 8;
     float motion[8][3] = {{1, 0, 1},
           {0, 1, 1},
           {-1, 0, 1},
@@ -49,13 +52,11 @@ robot_path_t search_for_path(pose_xyt_t start,
           {1, 1, sqrt(2)}};
 
     // Initialize open set and closed set
-    //std::vector<Node> openset;
-    //std::vector<Node> closedset;
     std::vector<Node> openset;
     std::vector<Node> closedset;
 
-    n_ind = calc_id(nstart.x, nstart.y, width);
-    openset.push_back(nstart);
+    //n_ind = calc_id(nstart.x, nstart.y, width);
+    openset.push_back(nstart);  // add nstart to the openset
 
     // Plan the path
     while(1) {
@@ -72,15 +73,20 @@ robot_path_t search_for_path(pose_xyt_t start,
 
         // Find item with lowest cost
         for (i = 1; i < openset.size(); i++) {
-            if (openset[i].cost < current.cost) { // if the node has a lower cost than the saved node
+            check_h = calc_h(ngoal, openset[i].x, openset[i].y);
+            current_h = calc_h(ngoal, current.x, current.y);
+
+            if (openset[i].cost + check_h < current.cost + current_h) { // if the node has a lower cost than the saved node
                 n_ind = i;
+                current = openset[i];
                 //std::cout << i << std::endl;
             }
         }
-        current = openset[n_ind];
+        //current = openset[n_ind];
 
         //std::cout << "min_node: " << current.x << ", " << current.y << " cost: " << current.cost << std::endl;
 
+        // Check if we're at the goal
         if (current == ngoal) {
             //std::cout << "found the goal!" << std::endl;
             ngoal.pind = current.pind;
@@ -95,14 +101,14 @@ robot_path_t search_for_path(pose_xyt_t start,
 
         // Add it to the closed set
         closedset.push_back(current);
+        // SAVE CLOSEDSET INDEX
 
         //print_sets(openset, closedset); // DEBUG
 
-        // print size of grid (distances)
-        //std::cout <<
-
         // get parent id
-        p_ind = calc_id(current.x, current.y, width);
+        //p_ind = calc_id(current.x, current.y, width);
+        p_ind = (int)closedset.size() - 1;
+        //std::cout << p_ind << std::endl;
 
         // expand search grid based on motion model
         for (i = 0; i < motion_len; i++) {
@@ -116,11 +122,11 @@ robot_path_t search_for_path(pose_xyt_t start,
             //std::cout << "new node cost: " << new_node.cost;
 
             // add heuristic
-            new_node.cost += calc_h(ngoal, new_node.x, new_node.y);
+            //new_node.cost += calc_h(ngoal, new_node.x, new_node.y);
 
             //std::cout << " , w/h = " << new_node.cost << std::endl;
 
-            n_ind = calc_id(new_node.x, new_node.y, width);
+            //n_ind = calc_id(new_node.x, new_node.y, width);
 
             //std::cout << "exploring " << new_node.x << ", " << new_node.y << std::endl;
 
@@ -188,7 +194,7 @@ float calc_h(Node ngoal, int x, int y) {
 
     //std::cout << "x: " << (ngoal.x - x)*2 << " y: " << (ngoal.y - y)*2 << std::endl;
 
-    float w = 1.0;  // weight of heuristic
+    float w = 10.0;  // weight of heuristic
     float d = w * sqrt(pow((ngoal.x - x), 2) + pow((ngoal.y - y), 2));
     return d;
 }
@@ -204,9 +210,12 @@ void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_
 
     // Local Variables
     pose_xyt_t next; // position in world coordinates
+    pose_xyt_t turn; // position in world coordinates
     Node n;             // node
     int path_size = 0;
     robot_path_t temp_path;
+    float theta;
+    int j;          //iterator
 
     /*std::cout << "\nClosedset: ";
     for (uint i = 0; i < closedset.size(); i++) {
@@ -217,12 +226,13 @@ void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_
     // debug
     //std::cout << "final path (backwards): ";
 
-    float ngoalx = distances.originInGlobalFrame().x + ngoal.x*distances.metersPerCell();
-    float ngoaly = distances.originInGlobalFrame().y + ngoal.y*distances.metersPerCell();
+    //float ngoalx = distances.originInGlobalFrame().x + ngoal.x*distances.metersPerCell();
+    //float ngoaly = distances.originInGlobalFrame().y + ngoal.y*distances.metersPerCell();
     //std::cout << "(" << ngoalx << ", " << ngoaly << ") ";
 
-    next.x = ngoalx;
-    next.y = ngoaly;
+    // add goal point
+    next.x = distances.originInGlobalFrame().x + ngoal.x*distances.metersPerCell();
+    next.y = distances.originInGlobalFrame().y + ngoal.y*distances.metersPerCell();
     temp_path.path.push_back(next);
     path_size++;
 
@@ -231,13 +241,15 @@ void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_
     //std::cout << pind << std::endl;
     while (pind != -1) {
 
-        for (int i = 0; i < closedset.size(); i++) {
-            if (calc_id(closedset[i].x, closedset[i].y, distances.widthInCells()) == pind) {}
-                n = closedset[i];
-                //std::cout << "found next point" << std::endl;
-                break;
-       }
-        
+        //for (int i = 0; i < closedset.size(); i++) {
+        //    if (calc_id(closedset[i].x, closedset[i].y, distances.widthInCells()) == pind) //{}
+        //        n = closedset[i];
+        //       //std::cout << "found next point" << std::endl;
+        //        break;
+       //}
+        n = closedset[pind];
+
+        // add next coordinate to temp_path
         next.x = distances.originInGlobalFrame().x + n.x*distances.metersPerCell();
         next.y = distances.originInGlobalFrame().y + n.y*distances.metersPerCell();
         temp_path.path.push_back(next);
@@ -245,13 +257,49 @@ void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_
 
         path_size++;
 
-        std::cout << "(" << next.x << ", " << next.y << ") , pind = " << pind << std::endl;;
+        //std::cout << "(" << next.x << ", " << next.y << ") , pind = " << pind << std::endl;;
     }
     //std::cout << "\n";
 
-    // reverse path
-    for (int i = 0; i < path_size; i++) {
-        path->path.push_back(temp_path.path[path_size-i-1]);
+    // add second pose to path
+    if (path_size > 1) {
+        next = temp_path.path[path_size - 2];
+        theta = atan2(next.y - path->path[0].y, next.x - path->path[0].x);
+        next.theta = theta;
+        path->path.push_back(next);
+    }
+    else return;
+
+    //std::cout << path_size << std::endl;
+    //std::cout << "(" << next.x << ", " << next.y << ") , pind = " << pind << std::endl;;
+
+    // trim and reverse path (path already contains the first 2 poses)
+    // add intermediate points
+    j = 2; // place in path
+    for (int i = 2; i < path_size; i++) {
+
+        // get pose
+        next = temp_path.path[path_size - i - 1];
+        
+        // Check if point is on the same line
+        theta = atan2(next.y - path->path[j - 1].y, next.x - path->path[j - 1].x);
+        next.theta = theta;
+        
+        // Check if point is the same angle
+        if (theta == path->path[j - 1].theta) path->path[j - 1] = next;
+        else {
+
+            // add point
+            //path->path.push_back(temp_path.path[path_size-i-1]);
+            path->path.push_back(next);
+            j++; // iterate
+
+            // add turn
+            turn = path->path[j - 1];
+            turn.theta = theta;
+            path->path.push_back(turn);
+            j++;
+        }
     }
 }
 

@@ -76,7 +76,7 @@ bool test_empty_grid(void)
     */
     
     // See that a straight-line path has only two poses -- the start and end
-    /*{
+    {
         pose_xyt_t start;
         start.x = -5.0;
         start.y = 0.0;
@@ -100,7 +100,7 @@ bool test_empty_grid(void)
         
         std::copy(path.path.begin(), path.path.end(), std::ostream_iterator<pose_xyt_t>(std::cout, " "));
         std::cout << '\n';
-    }*/
+    }
     
     // See that a straight-line path has only two poses -- the start and end
     {
