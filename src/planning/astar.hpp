@@ -3,6 +3,9 @@
 
 #include <lcmtypes/robot_path_t.hpp>
 #include <lcmtypes/pose_xyt_t.hpp>
+#include <queue>
+#include <math.h>
+#include <vector>
 
 class ObstacleDistanceGrid;
 
@@ -29,11 +32,26 @@ struct SearchParams
 */
 struct Node
 {
-    pose_xyt_t pose;    // position of this node
+    int x;    // x position of this node
+    int y;    // y position of this node
     float cost;         // cost of this node
     int pind;           // path index
 
-    Node(pose_xyt_t pose_in, float cost_in, int pind_in) : pose(pose_in), cost(cost_in), pind(pind_in) {}
+    Node() : x(0), y(0), cost(0), pind(0) {}
+    Node(int x_in, int y_in, float cost_in, int pind_in) : x(x_in), y(y_in), cost(cost_in), pind(pind_in) {}
+
+    //bool operator()( const Node* a, const Node* b ) const {
+    //    return a->cost < b->cost;
+   //}
+
+    bool operator<(const Node &b) const {
+        return cost < b.cost;
+    }
+
+   bool operator==(const Node &b) const {
+        return x == b.x && y == b.y;
+    }
+
 };
 
 
@@ -51,5 +69,18 @@ robot_path_t search_for_path(pose_xyt_t start,
                              pose_xyt_t goal, 
                              const ObstacleDistanceGrid& distances,
                              const SearchParams& params);
+
+// Calculate heuristic
+float calc_h(Node ngoal, int x, int y);
+
+// Calculate node id
+int calc_id(int x, int y, int width);
+
+// Calculate final path
+void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_t * path, const ObstacleDistanceGrid& distances);
+
+// Print sets for debugging
+void print_sets(const std::vector<Node> &openset, const std::vector<Node> &closedset);
+
 
 #endif // PLANNING_ASTAR_HPP
