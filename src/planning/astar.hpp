@@ -5,7 +5,7 @@
 #include <lcmtypes/pose_xyt_t.hpp>
 #include <queue>
 #include <math.h>
-#include <map>
+#include <vector>
 
 class ObstacleDistanceGrid;
 
@@ -40,9 +40,18 @@ struct Node
     Node() : x(0), y(0), cost(0), pind(0) {}
     Node(int x_in, int y_in, float cost_in, int pind_in) : x(x_in), y(y_in), cost(cost_in), pind(pind_in) {}
 
-    bool operator()( const Node* a, const Node* b ) const {
-        return a->cost < b->cost;
+    //bool operator()( const Node* a, const Node* b ) const {
+    //    return a->cost < b->cost;
+   //}
+
+    bool operator<(const Node &b) const {
+        return cost < b.cost;
     }
+
+   bool operator==(const Node &b) const {
+        return x == b.x && y == b.y;
+    }
+
 };
 
 
@@ -68,6 +77,10 @@ float calc_h(Node ngoal, int x, int y);
 int calc_id(int x, int y, int width);
 
 // Calculate final path
-void calc_final_path(Node ngoal, std::map<int, Node> closedset, robot_path_t * path);
+void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_t * path, const ObstacleDistanceGrid& distances);
+
+// Print sets for debugging
+void print_sets(const std::vector<Node> &openset, const std::vector<Node> &closedset);
+
 
 #endif // PLANNING_ASTAR_HPP
