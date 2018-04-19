@@ -17,7 +17,7 @@ robot_path_t search_for_path(pose_xyt_t start,
     Node current;
     Node new_node;
 
-    int width = distances.widthInCells();
+    //int width = distances.widthInCells();
 
     int startCellx = (start.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter();
     int startCelly = (start.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter();
@@ -210,7 +210,7 @@ void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_
 
     // Local Variables
     pose_xyt_t next; // position in world coordinates
-    pose_xyt_t turn; // position in world coordinates
+    //pose_xyt_t turn; // position in world coordinates
     Node n;             // node
     int path_size = 0;
     robot_path_t temp_path;
@@ -295,10 +295,10 @@ void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_
             j++; // iterate
 
             // add turn
-            turn = path->path[j - 1];
-            turn.theta = theta;
-            path->path.push_back(turn);
-            j++;
+            //turn = path->path[j - 1];
+            //turn.theta = theta;
+            //path->path.push_back(turn);
+            //j++;
         }
     }
 }
