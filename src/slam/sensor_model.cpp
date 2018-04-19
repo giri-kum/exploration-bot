@@ -31,10 +31,6 @@ SensorModel::SensorModel(void)
     z_hit = .95;
 
 
-
-
-
-
     //pulled from data sheet
     z_max = 40;
 
@@ -53,6 +49,7 @@ SensorModel::SensorModel(void)
     //based on data
     //sigma_hit = .0022;
 
+    //sigma_hit = .1;
     sigma_hit = .1;
 
     x_sens = 0;
@@ -61,7 +58,7 @@ SensorModel::SensorModel(void)
 
     tip_val = 0;
 
-    n_samples = 10;
+    n_samples = 20;
 }
 
 
@@ -153,6 +150,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
     
     Point<double> start_position = Point<double>(sample.pose.x, sample.pose.y);
+
     Point<int> start_cell = global_position_to_grid_cell(start_position, map);
     
     Point<int> curr_cell = global_position_to_grid_cell(start_position, map);
@@ -281,12 +279,18 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
 
     Point<double> end_position  = grid_position_to_global_position( curr_pos, map);
+    end_position.x = map.originInGlobalFrame().x + curr_cell.x*map.metersPerCell();     
+    end_position.y = map.originInGlobalFrame().y + curr_cell.y*map.metersPerCell();
 
+
+    //Point<double> start_pose = global_position_to_grid_position(start_position, map);
     //z_est = std::hypot(end_position.x - start_position.x, end_position.y - start_position.y);
 
-    z_est = std::hypot(  (curr_cell.x-start_cell.x)*map.metersPerCell(), (curr_cell.y-start_cell.y)*map.metersPerCell()  );
 
-    return z_est;
+    //z_est = std::hypot(  (curr_cell.x-start_cell.x)*map.metersPerCell(), (curr_cell.y-start_cell.y)*map.metersPerCell()  );
+    z_est = std::hypot(    (start_position.x - end_position.x), (start_position.y - end_position.y)  );
+    //std::cout << "zest    " << z_est << "    ";
+    return z_est; 
     //return 1.0; // DEBUG DEBUG DEBUG ***
 }
 
