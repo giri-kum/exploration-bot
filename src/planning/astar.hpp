@@ -36,9 +36,10 @@ struct Node
     int y;    // y position of this node
     float cost;         // cost of this node
     int pind;           // path index
+    int inset;      // 1 if in set, 0 if not
 
-    Node() : x(0), y(0), cost(0), pind(0) {}
-    Node(int x_in, int y_in, float cost_in, int pind_in) : x(x_in), y(y_in), cost(cost_in), pind(pind_in) {}
+    Node() : x(-1), y(-1), cost(0), pind(-1), inset(0) {}
+    Node(int x_in, int y_in, float cost_in, int pind_in, int inset_in) : x(x_in), y(y_in), cost(cost_in), pind(pind_in), inset(inset_in) {}
 
     //bool operator()( const Node* a, const Node* b ) const {
     //    return a->cost < b->cost;
@@ -48,7 +49,7 @@ struct Node
         return cost < b.cost;
     }
 
-   bool operator==(const Node &b) const {
+    bool operator==(const Node &b) const {
         return x == b.x && y == b.y;
     }
 
@@ -71,16 +72,16 @@ robot_path_t search_for_path(pose_xyt_t start,
                              const SearchParams& params);
 
 // Calculate heuristic
-float calc_h(Node ngoal, int x, int y);
+float calc_h(Node ngoal, int x, int y, const ObstacleDistanceGrid& distances, const SearchParams& params);
 
 // Calculate node id
 int calc_id(int x, int y, int width);
 
 // Calculate final path
-void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_t * path, const ObstacleDistanceGrid& distances);
+void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, const ObstacleDistanceGrid& distances);
 
 // Print sets for debugging
-void print_sets(const std::vector<Node> &openset, const std::vector<Node> &closedset);
+//void print_sets(const Node * openset, const Node * closedset);
 
 
 #endif // PLANNING_ASTAR_HPP

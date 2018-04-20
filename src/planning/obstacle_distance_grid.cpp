@@ -31,8 +31,8 @@ void ObstacleDistanceGrid::setDistances(const OccupancyGrid& map)
     for(i = 0; i < height_; i++) {
         for (j = 0; j < width_; j++) {
 
-            // If cell is unknown, set distance to 0
-            if(map(i, j) == 0) distance(i, j) = 0;
+            // If cell is unknown or an obstacle, set distance to 0
+            if(map(i, j) >= 0) distance(i, j) = 0;
             else {
                 min_dist = 10000000; // initialize to a large number
                 // Check every other cell
@@ -51,6 +51,14 @@ void ObstacleDistanceGrid::setDistances(const OccupancyGrid& map)
                 distance(i, j) = min_dist;
             }  
         }
+    }
+
+    // DEBUGGING
+    for(i = 0; i < height_; i++) {
+        for (j = 0; j < width_; j++) {
+            std::cout << distance(i,j) << " ";
+        }
+        std::cout << std::endl;
     }
 }
 

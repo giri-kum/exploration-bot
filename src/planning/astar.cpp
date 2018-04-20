@@ -13,12 +13,25 @@ robot_path_t search_for_path(pose_xyt_t start,
     int stop;           // signals loops to exit
     int n_ind;          // node index
     int p_ind;          // parent index
+    int id;
 
     Node current;
     Node new_node;
 
-    //int width = distances.widthInCells();
+    // Get grid parameters
+    int width = distances.widthInCells();
+    int height = distances.heightInCells();
+    int tot_nodes = calc_id(width, height, width);
 
+    // PRINT DISTANCES FOR DEBUGGING
+    //for (i = 0; i < height; i++) {
+    //    for (j = 0; j < width; j++) {
+    //        std::cout << distances(i, j) << " ";
+    //    }
+    //    std::cout << std::endl;
+    //}
+
+    // Get start cells
     int startCellx = (start.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter();
     int startCelly = (start.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter();
     int goalCellx = (goal.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter();
@@ -34,8 +47,8 @@ robot_path_t search_for_path(pose_xyt_t start,
     path.path.push_back(start);     // add first pose
 
     // Initialize start and end nodes
-    Node nstart(startCellx, startCelly, 0, -1);
-    Node ngoal(goalCellx, goalCelly, 0, -1);
+    Node nstart(startCellx, startCelly, 0, -1, 1);
+    Node ngoal(goalCellx, goalCelly, 0, -1, 0);
 
     //std::cout << "start: (" << nstart.x << ", " << nstart.y << ")\n";
     //std::cout << "goal: (" << ngoal.x << ", " << ngoal.y << ")\n";
@@ -52,11 +65,20 @@ robot_path_t search_for_path(pose_xyt_t start,
           {1, 1, sqrt(2)}};
 
     // Initialize open set and closed set
-    std::vector<Node> openset;
-    std::vector<Node> closedset;
+    //std::vector<Node> openset;
+    //std::vector<Node> closedset;
+    Node openset[tot_nodes];
+    Node closedset[tot_nodes];
+    int open_size = 0;
+    int closed_size = 0;
 
     //n_ind = calc_id(nstart.x, nstart.y, width);
-    openset.push_back(nstart);  // add nstart to the openset
+    //openset.push_back(nstart);  // add nstart to the openset
+
+    // add nstart to the openset
+    id = calc_id(startCellx, startCelly, width);
+    openset[id] = nstart;
+    open_size++;
 
     // Plan the path
     while(1) {
@@ -66,20 +88,35 @@ robot_path_t search_for_path(pose_xyt_t start,
 
         //std::cout << "starting here!\n";
 
-        // set first node to first node in openset
-        if (openset.size() != 0) current = openset[0];
-        else std::cout << "openset is empty!\n";
-        n_ind = 0; // reset n_ind        
+        // set first node to first inset node in openset
+        if (open_size != 0) {
+            for (i = 0; i < tot_nodes; i++) {
+                if (openset[i].inset) {
+                    current = openset[i];
+                    //std::cout << "min_node: " << current.x << ", " << current.y << " cost: " << current.cost << std::endl;
+                    break;
+                }
+            }
+        }
+        else {
+            //std::cout << "openset is empty!\n";
+            break;
+        }
+        n_ind = i; // reset n_ind        
 
         // Find item with lowest cost
-        for (i = 1; i < openset.size(); i++) {
-            check_h = calc_h(ngoal, openset[i].x, openset[i].y);
-            current_h = calc_h(ngoal, current.x, current.y);
+        for (; i < tot_nodes; i++) {
+            // if node is in the open set
+            if (openset[i].inset) {
+                // Calculate heuristics
+                check_h = calc_h(ngoal, openset[i].x, openset[i].y, distances, params);
+                current_h = calc_h(ngoal, current.x, current.y, distances, params);
 
-            if (openset[i].cost + check_h < current.cost + current_h) { // if the node has a lower cost than the saved node
-                n_ind = i;
-                current = openset[i];
-                //std::cout << i << std::endl;
+                if (openset[i].cost + check_h < current.cost + current_h) { // if the node has a lower cost than the saved node
+                    n_ind = i;
+                    current = openset[i];
+                    //std::cout << i << std::endl;
+                }
             }
         }
         //current = openset[n_ind];
@@ -95,20 +132,28 @@ robot_path_t search_for_path(pose_xyt_t start,
         }
 
         // Remove the item from the open set
-        openset.erase(openset.begin() + n_ind);
+        //openset.erase(openset.begin() + n_ind);
+        //openset[n_ind].inset = 0;
 
         //std::cout << n_ind << std::endl;
 
         // Add it to the closed set
-        closedset.push_back(current);
+        //closedset.push_back(current);
+        closedset[n_ind] = current;
+        closed_size++;
         // SAVE CLOSEDSET INDEX
+
+        // Remove the item from the open set
+        openset[n_ind].inset = 0;
+        open_size--;
 
         //print_sets(openset, closedset); // DEBUG
 
         // get parent id
         //p_ind = calc_id(current.x, current.y, width);
-        p_ind = (int)closedset.size() - 1;
+        //p_ind = (int)closedset.size() - 1;
         //std::cout << p_ind << std::endl;
+        p_ind = n_ind;
 
         // expand search grid based on motion model
         for (i = 0; i < motion_len; i++) {
@@ -117,7 +162,7 @@ robot_path_t search_for_path(pose_xyt_t start,
 
             // Create expanded node
             new_node = Node(current.x + motion[i][0], current.y + motion[i][1],
-                        current.cost + motion[i][2], p_ind);
+                        current.cost + motion[i][2], p_ind, 1);
 
             //std::cout << "new node cost: " << new_node.cost;
 
@@ -126,14 +171,18 @@ robot_path_t search_for_path(pose_xyt_t start,
 
             //std::cout << " , w/h = " << new_node.cost << std::endl;
 
-            //n_ind = calc_id(new_node.x, new_node.y, width);
+            n_ind = calc_id(new_node.x, new_node.y, width);
 
             //std::cout << "exploring " << new_node.x << ", " << new_node.y << std::endl;
 
             // If the grid is not empty and (the node is not on the map or it is an obstacle)
-            if (distances(new_node.x, new_node.y) > 0 
-                && (!distances.isCellInGrid(new_node.x, new_node.y) 
-                || distances(new_node.x, new_node.y) < params.minDistanceToObstacle)) continue;
+            if (!distances.isCellInGrid(new_node.x, new_node.y)) continue;
+            //if (distances(new_node.x, new_node.y) >= 0 
+                //&& distances(new_node.x, new_node.y) <= params.minDistanceToObstacle) continue;
+            if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle) continue;
+
+            // Add distance cost
+            //new_node.cost += pow(params.maxDistanceWithCost - distances(new_node.x, new_node.y), params.distanceCostExponent);
 
             //stop = false;
             // If the node is in the closed set
@@ -144,25 +193,30 @@ robot_path_t search_for_path(pose_xyt_t start,
             //if (stop) continue;
 
             // If node is already in closed set, continue
-            stop = false;
-            for (j = 0; j < closedset.size(); j++) {
-                if (closedset[j] == new_node) {
-                    stop = true;
-                    break;
-                }
-            }
-            if (stop) continue;
+            if (closedset[n_ind].inset == 1) continue;
+
+            //stop = false;
+            //for (j = 0; j < closedset.size(); j++) {
+            //    if (closedset[j] == new_node) {
+            //        stop = true;
+            //        break;
+            //    }
+            //}
+            //if (stop) continue;
 
             // Otherwise, check if it is in the openset and update
-            stop = false;
-            for (j = 0; j < openset.size(); j++) {
-                if (openset[j] == new_node) {
-                    stop = true;
-                    break;
-                }
-            }
-            if (stop) openset[j] = new_node;
-            else openset.push_back(new_node);
+            if (!openset[n_ind].inset) open_size++;
+            openset[n_ind] = new_node;
+
+            //stop = false;
+            //for (j = 0; j < openset.size(); j++) {
+            //    if (openset[j] == new_node) {
+            //        stop = true;
+            //        break;
+            //    }
+            //}
+            //if (stop) openset[j] = new_node;
+            //else openset.push_back(new_node);
 
 
             /*
@@ -181,6 +235,15 @@ robot_path_t search_for_path(pose_xyt_t start,
     }
     calc_final_path(ngoal, closedset, &path, distances);
 
+    // Check final theta
+    if (path.path[j].theta != goal.theta) {
+        pose_xyt_t final_pose;
+        final_pose.x = path.path[j].x;
+        final_pose.y = path.path[j].y;
+        final_pose.theta = path.path[j].theta;
+        path.path.push_back(final_pose);
+    }
+
     // Clean up
     //releaseNodes(openset);
     //releaseNodes(closedset);
@@ -190,13 +253,19 @@ robot_path_t search_for_path(pose_xyt_t start,
     return path;
 }
 
-float calc_h(Node ngoal, int x, int y) {
+float calc_h(Node ngoal, int x, int y, const ObstacleDistanceGrid& distances, const SearchParams& params) {
 
     //std::cout << "x: " << (ngoal.x - x)*2 << " y: " << (ngoal.y - y)*2 << std::endl;
 
-    float w = 10.0;  // weight of heuristic
-    float d = w * sqrt(pow((ngoal.x - x), 2) + pow((ngoal.y - y), 2));
-    return d;
+    // Distance from goal cost
+    float w1 = 10;  // weight of heuristic
+    float d = w1 * sqrt(pow((ngoal.x - x), 2) + pow((ngoal.y - y), 2));
+    
+    // Add obstacle distance cost
+    float w2 = 0.5;
+    float od = w2 * pow(params.maxDistanceWithCost - distances(x, y), params.distanceCostExponent);
+    
+    return d + od;
 }
 
 int calc_id(int x, int y, int width) {
@@ -204,7 +273,7 @@ int calc_id(int x, int y, int width) {
     return y*width + x;
 }
 
-void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_t * path, const ObstacleDistanceGrid& distances) {
+void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, const ObstacleDistanceGrid& distances) {
 
     //std::cout << "calculating final path!" << std::endl;
 
@@ -301,9 +370,11 @@ void calc_final_path(Node ngoal, const std::vector<Node> &closedset, robot_path_
             //j++;
         }
     }
+
 }
 
-void print_sets(const std::vector<Node> &openset, const std::vector<Node> &closedset) {
+/*
+void print_sets(const Node * openset, const Node * closedset) {
 
     std::cout << "Openset size: " << openset.size() << std::endl;
     std::cout << "Closedset size: " << closedset.size() << std::endl;
@@ -319,7 +390,7 @@ void print_sets(const std::vector<Node> &openset, const std::vector<Node> &close
     }
     std::cout << std::endl << std::endl;
 }
-
+*/
 
 /*void releaseNodes(Node* nodes)
 {
