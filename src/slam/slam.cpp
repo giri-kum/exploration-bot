@@ -24,6 +24,7 @@ OccupancyGridSLAM::OccupancyGridSLAM(int         numParticles,
 , lcm_(lcmComm)
 , mapUpdateCount_(0)
 {
+
     // Confirm that the mode is valid -- mapping-only and localization-only are not specified
     assert(!(mappingOnlyMode && localizationOnlyMap.length() > 0));
     
@@ -187,7 +188,7 @@ void OccupancyGridSLAM::runSLAMIteration(void)
 {
     copyDataForSLAMUpdate();
     initializePosesIfNeeded();
-    
+
     // Sanity check the laser data to see if rplidar_driver has lost sync
     if(currentScan_.num_ranges > 100)//250)
     {
@@ -199,6 +200,7 @@ void OccupancyGridSLAM::runSLAMIteration(void)
         std::cerr << "ERROR: OccupancyGridSLAM: Detected invalid laser scan with " << currentScan_.num_ranges 
             << " ranges.\n";
     }
+    
 }
 
 
@@ -253,10 +255,9 @@ void OccupancyGridSLAM::updateLocalization(void)
         currentPose_  = filter_.updateFilter(currentOdometry_, currentScan_, map_);//, v_, omega_, utime_); //remove last 3 args for odo
         
         auto particles = filter_.particles();
-
-        lcm_.publish(SLAM_POSE_CHANNEL, &currentPose_);
+ //       std::cout<<"numParticles: "<<particles.num_particles<< " Location: "<<particles.particles[0].pose.x<<" "<< particles.particles[0].pose.y<<std::endl;
+ //       lcm_.publish(SLAM_POSE_CHANNEL, &currentPose_); Uncomment this later 
         lcm_.publish(SLAM_PARTICLES_CHANNEL, &particles);
-
    }
 }
 

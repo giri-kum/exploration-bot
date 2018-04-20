@@ -1,6 +1,8 @@
 #ifndef SLAM_SENSOR_MODEL_HPP
 #define SLAM_SENSOR_MODEL_HPP
 
+#include <lcmtypes/lidar_t.hpp>
+
 class  lidar_t;
 class  OccupancyGrid;
 struct particle_t;
@@ -39,6 +41,34 @@ public:
 private:
     
     ///////// TODO: Add any private members for your SensorModel ///////////////////
+
+    //model paramaters
+
+    //max sensor range
+    float z_max;
+    float z_hit;
+    float z_short;
+    float z_rand;
+    float lambda_short;
+    float sigma_hit;
+
+    //sensor offsets from robot reference frame
+    float x_sens;
+    float y_sens;
+    float theta_sens;
+
+    //the value which we use to compare whether a cell is occupied or not
+    float tip_val;
+
+    //number of scans to use
+    int n_samples;
+
+    //calculating the distance to obstacle using raycasting
+    double raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle);
+
+    //calculating the distance to obstacle using fake raycasting
+    double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle);
+
 };
 
 #endif // SLAM_SENSOR_MODEL_HPP

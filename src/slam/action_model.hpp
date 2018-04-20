@@ -5,7 +5,7 @@
 #include <random>
 
 struct particle_t;
-
+double sample_gaussian(double variance,double mean = 0);
 /**
 * ActionModel implements the sampling-based odometry action model for estimating the motion of the robot between
 * time t and t'.
@@ -28,7 +28,11 @@ struct particle_t;
 class ActionModel
 {
 public:
-    
+    pose_xyt_t oldpose;
+    float del_rot1,del_trans,del_rot2;
+    int64_t time_stamp;
+    float alpha[4];    
+    bool moved;
     /**
     * Constructor for ActionModel.
     */
