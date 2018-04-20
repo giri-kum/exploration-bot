@@ -48,6 +48,11 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
         //posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
         posteriorPose_ = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
     }
+
+    // DEBUG
+    //posteriorPose_.x = 0;
+    //posteriorPose_.y = 0;
+    //posteriorPose_.theta = 0;
     
     posteriorPose_.utime = odometry.utime;
     

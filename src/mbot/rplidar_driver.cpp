@@ -223,6 +223,8 @@ bool stabilized = false;
 		        now = utime_now();//(int64_t) tv.tv_sec * 1000000 + tv.tv_usec; //get current timestamp in milliseconds
             	newLidar.ranges[pos] = nodes[pos].distance_q2/4000.0f;
             	newLidar.thetas[pos] = (nodes[pos].angle_q6_checkbit >> RPLIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)*3.1415926535f/11520.0f;
+                //newLidar.thetas[pos] = (nodes[pos].angle_q6_checkbit >> RPLIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)*3.1415926535f/11520.0f - 3.1415926535f/2.0;
+                //if(newLidar.thetas[pos] < -3.1415926535f*2) newLidar.thetas[pos] += 3.1415926535f*2; // added
             	newLidar.intensities[pos] = nodes[pos].sync_quality >> RPLIDAR_RESP_MEASUREMENT_QUALITY_SHIFT;
             	newLidar.times[pos] = now;
 
@@ -233,6 +235,12 @@ bool stabilized = false;
 //                    newLidar.intensities[pos],
 //                    newLidar.times[pos]);
 //		printf("%03.2f,%08.2f,%f\n", newLidar.thetas[pos], newLidar.ranges[pos], newLidar.intensities[pos]);
+
+                // FIX LIDAR OFFSET -JS
+                //int i = 0;
+                //for (int pos = (int)count / 4; p) {
+
+                //}
             }
 
             lcmConnection.publish("LIDAR", &newLidar);
