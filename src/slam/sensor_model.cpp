@@ -256,7 +256,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
 //dumb raycast that just does simple math to test
 double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
-
+/*
     double z_est = z_max;
     float th_global = angle + sample.pose.theta + theta_sens;
 
@@ -302,5 +302,7 @@ double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, f
     }
 
     return std::hypot( map.metersPerCell() * (curr_cell.x - start_cell.x), map.metersPerCell() * (curr_cell.y - start_cell.y) );
+    */
+    return 0.0;
 }
 

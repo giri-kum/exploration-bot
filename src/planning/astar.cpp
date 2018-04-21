@@ -32,10 +32,10 @@ robot_path_t search_for_path(pose_xyt_t start,
     //}
 
     // Get start cells
-    int startCellx = (start.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter();
-    int startCelly = (start.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter();
-    int goalCellx = (goal.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter();
-    int goalCelly = (goal.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter();
+    int startCellx = static_cast<int>((start.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter());
+    int startCelly = static_cast<int>((start.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
+    int goalCellx = static_cast<int>((goal.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter());
+    int goalCelly = static_cast<int>((goal.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
 
     // Heuristic variables
     float check_h;
@@ -179,7 +179,11 @@ robot_path_t search_for_path(pose_xyt_t start,
             if (!distances.isCellInGrid(new_node.x, new_node.y)) continue;
             //if (distances(new_node.x, new_node.y) >= 0 
                 //&& distances(new_node.x, new_node.y) <= params.minDistanceToObstacle) continue;
-            if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle) continue;
+            //if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle) continue;
+            
+            // Check if cell is safe
+            if (distances(new_node.x, new_node.y) <= std::ceil(params.minDistanceToObstacle)) continue;
+            //std::cout << "distance: " << distances(new_node.x, new_node.y) << " , min: " << params.minDistanceToObstacle << std::endl;
 
             // Add distance cost
             //new_node.cost += pow(params.maxDistanceWithCost - distances(new_node.x, new_node.y), params.distanceCostExponent);
@@ -262,9 +266,12 @@ float calc_h(Node ngoal, int x, int y, const ObstacleDistanceGrid& distances, co
     float d = w1 * sqrt(pow((ngoal.x - x), 2) + pow((ngoal.y - y), 2));
     
     // Add obstacle distance cost
-    float w2 = 0.5;
-    float od = w2 * pow(params.maxDistanceWithCost - distances(x, y), params.distanceCostExponent);
-    
+    float w2 = 1;
+    float od = 0;
+    if (distances(x, y) <= params.maxDistanceWithCost) {
+        od = w2 * pow(params.maxDistanceWithCost - distances(x, y), params.distanceCostExponent);
+    }
+
     return d + od;
 }
 
