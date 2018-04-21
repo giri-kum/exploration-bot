@@ -9,8 +9,8 @@ robot_path_t search_for_path(pose_xyt_t start,
 {     
     // Local Variables
     uint i;             // iterator uint
-    uint j;             // iterator uint
-    int stop;           // signals loops to exit
+    //uint j;             // iterator uint
+    //int stop;           // signals loops to exit
     int n_ind;          // node index
     int p_ind;          // parent index
     int id;
@@ -100,7 +100,8 @@ robot_path_t search_for_path(pose_xyt_t start,
         }
         else {
             //std::cout << "openset is empty!\n";
-            break;
+            return path;
+            //break;
         }
         n_ind = i; // reset n_ind        
 
@@ -182,7 +183,9 @@ robot_path_t search_for_path(pose_xyt_t start,
             //if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle) continue;
             
             // Check if cell is safe
-            if (distances(new_node.x, new_node.y) <= std::ceil(params.minDistanceToObstacle)) continue;
+            //if (distances(new_node.x, new_node.y) <= std::ceil(params.minDistanceToObstacle)) continue;
+            if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle) continue;
+            //if (distances(new_node.x, new_node.y) == 0) continue;
             //std::cout << "distance: " << distances(new_node.x, new_node.y) << " , min: " << params.minDistanceToObstacle << std::endl;
 
             // Add distance cost
@@ -240,13 +243,14 @@ robot_path_t search_for_path(pose_xyt_t start,
     calc_final_path(ngoal, closedset, &path, distances);
 
     // Check final theta
-    if (path.path[j].theta != goal.theta) {
+    /*int path_length = path.path.size();
+    if (path.path[path_length].theta != goal.theta) {
         pose_xyt_t final_pose;
-        final_pose.x = path.path[j].x;
-        final_pose.y = path.path[j].y;
-        final_pose.theta = path.path[j].theta;
+        final_pose.x = path.path[path_length].x;
+        final_pose.y = path.path[path_length].y;
+        final_pose.theta = path.path[path_length].theta;
         path.path.push_back(final_pose);
-    }
+    }*/
 
     // Clean up
     //releaseNodes(openset);
@@ -269,7 +273,7 @@ float calc_h(Node ngoal, int x, int y, const ObstacleDistanceGrid& distances, co
     float w2 = 1;
     float od = 0;
     if (distances(x, y) <= params.maxDistanceWithCost) {
-        od = w2 * pow(params.maxDistanceWithCost - distances(x, y), params.distanceCostExponent);
+        od = w2 * pow(distances.cellsPerMeter() * (params.maxDistanceWithCost - distances(x, y)), params.distanceCostExponent);
     }
 
     return d + od;
