@@ -3,6 +3,9 @@
 
 #include <lcmtypes/robot_path_t.hpp>
 #include <lcmtypes/pose_xyt_t.hpp>
+#include <queue>
+#include <math.h>
+#include <vector>
 
 class ObstacleDistanceGrid;
 
@@ -23,6 +26,35 @@ struct SearchParams
                                     ///< for cellDistance > minDistanceToObstacle && cellDistance < maxDistanceWithCost
 };
 
+/**
+* Node for path plan
+* -JS
+*/
+struct Node
+{
+    int x;    // x position of this node
+    int y;    // y position of this node
+    float cost;         // cost of this node
+    int pind;           // path index
+    int inset;      // 1 if in set, 0 if not
+
+    Node() : x(-1), y(-1), cost(0), pind(-1), inset(0) {}
+    Node(int x_in, int y_in, float cost_in, int pind_in, int inset_in) : x(x_in), y(y_in), cost(cost_in), pind(pind_in), inset(inset_in) {}
+
+    //bool operator()( const Node* a, const Node* b ) const {
+    //    return a->cost < b->cost;
+   //}
+
+    bool operator<(const Node &b) const {
+        return cost < b.cost;
+    }
+
+    bool operator==(const Node &b) const {
+        return x == b.x && y == b.y;
+    }
+
+};
+
 
 /**
 * search_for_path uses an A* search to find a path from the start to goal poses. The search assumes a circular robot
@@ -38,5 +70,18 @@ robot_path_t search_for_path(pose_xyt_t start,
                              pose_xyt_t goal, 
                              const ObstacleDistanceGrid& distances,
                              const SearchParams& params);
+
+// Calculate heuristic
+float calc_h(Node ngoal, int x, int y, const ObstacleDistanceGrid& distances, const SearchParams& params);
+
+// Calculate node id
+int calc_id(int x, int y, int width);
+
+// Calculate final path
+void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, const ObstacleDistanceGrid& distances);
+
+// Print sets for debugging
+//void print_sets(const Node * openset, const Node * closedset);
+
 
 #endif // PLANNING_ASTAR_HPP

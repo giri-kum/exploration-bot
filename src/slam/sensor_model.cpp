@@ -298,51 +298,6 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 //dumb raycast that just does simple math to test
 double SensorModel::simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
 
-    double z_est = z_max;
-    float th_global = angle + sample.pose.theta + theta_sens;
-
-    Point<double> start_position = Point<double>(sample.pose.x, sample.pose.y);
-    Point<double> curr_pos = global_position_to_grid_position(start_position, map);
-    Point<int> start_cell = global_position_to_grid_cell(start_position, map);
-    Point<int> curr_cell = global_position_to_grid_cell(curr_pos, map);
-
-
-    int xdir = 0;
-    int ydir = 0;
-
-    if ((th_global >= 0) && (th_global <M_PI/2)) {
-        xdir = 1;
-        ydir = 1;
-    } else if ((th_global >= M_PI/2) && (th_global < M_PI)) {
-        xdir = -1;
-        ydir = 1;
-    } else if ((th_global >= M_PI) && (th_global < 3*M_PI/2)) {
-        xdir = -1;
-        ydir = -1;
-    } else if ((th_global >= 3*M_PI/2) && (th_global < 2*M_PI)) {
-        xdir = 1;
-        ydir = -1;
-    }
-
-    float hdist = map.metersPerCell();
-
-    float deltax = std::abs(std::cos(th_global)) * hdist;
-    float deltay = std::abs(std::sin(th_global)) * hdist;
-
-
-    while (map.isCellInGrid(curr_cell.x, curr_cell.y)) {
-        curr_pos.x += xdir * deltax;
-        curr_pos.y += ydir * deltay;
-        curr_cell = global_position_to_grid_cell(curr_pos, map);
-
-        //if the cell is occupied break
-        if ( map.operator()(curr_cell.x, curr_cell.y) > tip_val) {
-            break;
-        }
-
-    }
-
-    z_est = std::hypot( map.metersPerCell() * (curr_cell.x - start_cell.x), map.metersPerCell() * (curr_cell.y - start_cell.y) );
-    return z_est;
+    return 0.0;
 }
 

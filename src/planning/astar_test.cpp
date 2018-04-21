@@ -64,6 +64,16 @@ bool test_empty_grid(void)
     
     int numTotalPaths = 0;
     int numCorrectPaths = 0;
+
+    // DEBUG JS
+    /*
+    for (int i = 0; i < grid.heightInCells(); i++) {
+        for (int j = 0; j < grid.widthInCells(); j++) {
+            std::cout << (int)grid(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+    */
     
     // See that a straight-line path has only two poses -- the start and end
     {
