@@ -34,8 +34,8 @@ SensorModel::SensorModel(void)
     //pulled from data sheet
     z_max = 40;
 
-    z_short = 0.0;
-    z_rand = 0.0;
+    z_short = 0.0018;
+    z_rand = 0.0000000001;
 
     /*
     //both these seem to be very small
@@ -93,7 +93,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
 
         //If we are not using the adjusted laser, use this
         r_las = scan.ranges[k];
-        th_global = scan.thetas[k];
+        th_global = -scan.thetas[k] + sample.pose.theta + theta_sens;
 
 
         // If we are using adjusted laser, use this
@@ -111,7 +111,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     	//calculate z_tk*
     	//double z_est = raycast_dist(sample, map, scan.thetas[k]);
         double z_est = raycast_dist(sample, map, th_global);
-        //std::cout << "k      " << k << "   z_est:   " << z_est << "   z_meas   " << scan.ranges[k] << "     q" << q << std::endl;
+        //std::cout << "k      " << k << "   z_est:   " << z_est << "   z_meas   " << r_las << "     q" << q << std::endl;
         //double simp_z_est = simple_raycast_dist(sample, map, scan.thetas[k]);
 
     	//p = zhit * phit(ztk | xt, m) + zshort * pshort(ztk | xt, m) + zmax * pmax(ztk | xt, m) + zrand * prand(ztk | xt, m)
@@ -169,6 +169,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     Point<double> start_position = Point<double>(sample.pose.x, sample.pose.y);
 
     Point<int> start_cell = global_position_to_grid_cell(start_position, map);
+    start_cell.x = start_cell.x;
     
     Point<int> curr_cell = global_position_to_grid_cell(start_position, map);
     Point<double> curr_pos = global_position_to_grid_position(start_position, map);
@@ -187,7 +188,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
     int quad;
     //int th_temp;
     //float self_theta;
-    float th_global = wrap_to_pi( sample.pose.theta - angle + theta_sens);
+    float th_global = angle;
 
     
     // Determine quadrant (1-4)

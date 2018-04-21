@@ -16,16 +16,8 @@ ParticleFilter::ParticleFilter(int numParticles)
 
 void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
 {
-
-    ///////////// TODO: Implement your method for initializing the particles in the particle filter /////////////////
-    for (int i = 0; i < kNumParticles_; i++) {
-        posterior_[i].parent_pose = pose;
-        posterior_[i].pose = pose;
-        posterior_[i].weight = (float) 1 / kNumParticles_;
-    }
-    //std::cout<<"Particles initialized to pose : ("<<pose.x<<", "<<pose.y<<", "<<pose.theta<<", "<<pose.utime<<", "<<posterior_[kNumParticles_-1].weight<<") \n";
-
-   //initializeUniformPosteriorDistribution(pose); // Debug, uncomment later
+   initializeUniformPosteriorDistribution(pose); 
+//   initializeGaussianPosteriorDistribution(pose); 
 }
 
 void ParticleFilter::initializeGaussianPosteriorDistribution(const pose_xyt_t& pose)
@@ -81,6 +73,7 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
         auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
         posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
         posteriorPose_ = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
+        //std::cout << "Slam Pose: (" << posteriorPose_.x << ", " << posteriorPose_.y << ", " << posteriorPose_.theta << ")\n";
     }
 
     // DEBUG
@@ -185,15 +178,17 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
     for (int i = 0; i < kNumParticles_; i++) 
     {
         posterior[i] = proposal[i];
+
         posterior[i].weight = sensorModel_.likelihood(proposal[i], laser, map);
-        //std::cout << "i   "  << i << " "<<posterior[i].pose.x<< " "<<posterior[i].pose.y<<" "<<posterior[i].pose.theta<<" "<<posterior[i].pose.utime; 
-        //std::cout << "   weight  " << posterior[i].weight << std::endl;
-        //posterior[i].weight = (float) 1 / kNumParticles_; // Get weights from sensor model here
+
         sum = sum + posterior[i].weight;
     }
+    //std::cout << "sum " << sum << std::endl;
+
     for (int i = 0; i < kNumParticles_; i++) // Normalization
     {
-        posterior[i].weight = posterior[i].weight/sum;
+        if (sum == 0) posterior[i].weight = 0;
+        else posterior[i].weight = posterior[i].weight/sum;
     }
 //    cout<<"From computeNormalizedPosterior " <<posterior[0].pose.x<<" " << proposal[0].pose.x<<endl;
     return posterior;
@@ -210,6 +205,9 @@ pose_xyt_t ParticleFilter::estimatePosteriorPose(const std::vector<particle_t>& 
 //    float cart_x = 0, cart_y = 0;
     for(int i = 0; i< kNumParticles_; i++)
     {
+
+        //std::cout << "weight: " << posterior[i].weight << std::endl;
+
         pose.x = pose.x + posterior[i].weight*posterior[i].pose.x;
         pose.y = pose.y + posterior[i].weight*posterior[i].pose.y;
         //cart_x = cos(pose.theta) + posterior[i].weight*cos(posterior[i].pose.theta);
