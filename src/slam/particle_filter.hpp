@@ -44,7 +44,8 @@ public:
     * \param    pose            Initial pose of the robot
     */
     void initializeFilterAtPose(const pose_xyt_t& pose);
-    
+    void initializeGaussianPosteriorDistribution(const pose_xyt_t& pose);
+    void initializeUniformPosteriorDistribution(const pose_xyt_t& pose);
     /**
     * updateFilter increments the state estimated by the particle filter. The filter update uses the most recent
     * odometry estimate and laser scan along with the occupancy grid map to estimate the new pose of the robot.
@@ -81,7 +82,7 @@ private:
     SensorModel sensorModel_;   // Sensor model to compute particle weights
     
     int kNumParticles_;         // Number of particles to use for estimating the pose
-    
+    std::vector<particle_t> new_resamplePosteriorDistribution(void);
     std::vector<particle_t> resamplePosteriorDistribution(void);
     std::vector<particle_t> computeProposalDistribution(const std::vector<particle_t>& prior);
     std::vector<particle_t> computeNormalizedPosterior(const std::vector<particle_t>& proposal,

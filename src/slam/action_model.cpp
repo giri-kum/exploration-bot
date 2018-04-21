@@ -20,8 +20,11 @@ double sample_gaussian(double variance,double mean)
 
 ActionModel::ActionModel(void)
 {
-	float factor = 0.1;
-	float beta[4] = {(float)0.0005/factor,(float)0.001/factor, (float)0.05/factor, (float)0.001/factor};  //for debugging {(float)0.0005/factor,(float)0.001/factor, (float)0.05/factor, (float)0.001/factor}; 
+	float a1_rot = 0.005; // rad; backup_value = 0.0005; set {0,sqrt(0.03), sqrt(0.0025)}
+	float a2_rot_from_trans = 0.01; // rad/m; backup_value = 0.001 or 0.0001; set = {0.125,sqrt(30),sqrt(0.0001)}
+	float a3_trans = 0.5; // m; backup_value = 0.05; set = {0.1,1,sqrt(0.5)}
+	float a4_trans_from_rot = 0.01; // m/rad; backup_value = 0.001 or 0.0001; set = {0,sqrt(0.0015),sqrt(0.0005)}
+	float beta[4] = {a1_rot, a2_rot_from_trans, a3_trans, a4_trans_from_rot};  //for debugging {(float)0.0005/factor,(float)0.001/factor, (float)0.05/factor, (float)0.001/factor}; 
     //////////////// TODO: Handle any initialization for your ActionModel /////////////////////////
 	oldpose.x = 0;
 	oldpose.y = 0;
