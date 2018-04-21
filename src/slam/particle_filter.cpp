@@ -21,7 +21,7 @@ void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
         posterior_[i].pose = pose;
         posterior_[i].weight = (float) 1 / kNumParticles_;
     }
-    std::cout<<"Particles initialized to pose : ("<<pose.x<<", "<<pose.y<<", "<<pose.theta<<", "<<pose.utime<<", "<<posterior_[kNumParticles_-1].weight<<") \n";
+    //std::cout<<"Particles initialized to pose : ("<<pose.x<<", "<<pose.y<<", "<<pose.theta<<", "<<pose.utime<<", "<<posterior_[kNumParticles_-1].weight<<") \n";
    
 }
 
@@ -36,16 +36,16 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
     
     if(hasRobotMoved)
     {
-        /*
+        
         for (int i = 0; i < kNumParticles_; i++) 
         {
             posterior_[i] = actionModel_.applyAction(posterior_[i]);
             posterior_[i].weight = 1 / kNumParticles_;
         }
-        */
-        auto prior = resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
-        auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
-        posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
+        
+        //auto prior = resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
+        //auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
+        //posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
         posteriorPose_ = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
     }
     
@@ -96,6 +96,8 @@ std::vector<particle_t> ParticleFilter::resamplePosteriorDistribution(void)
         threshold = threshold + (float) (1/kNumParticles_);
     }
 //    cout<<"From resamplePosteriorDistribution " <<prior[0].pose.x<<" " << posterior_[0].pose.x<<endl;
+    
+//    prior = posterior_; don't uncomment this unless u want to remove resampling
     return prior;
 }
 
@@ -120,10 +122,19 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
     /////////// TODO: Implement your algorithm for computing the normalized posterior distribution using the 
     ///////////       particles in the proposal distribution
     std::vector<particle_t> posterior(kNumParticles_);
+    float sum = 0;
     for (int i = 0; i < kNumParticles_; i++) 
     {
         posterior[i] = proposal[i];
-        posterior[i].weight = (float) 1 / kNumParticles_;
+        posterior[i].weight = sensorModel_.likelihood(proposal[i], laser, map);
+        //std::cout << "i   "  << i << " "<<posterior[i].pose.x<< " "<<posterior[i].pose.y<<" "<<posterior[i].pose.theta<<" "<<posterior[i].pose.utime; 
+        //std::cout << "   weight  " << posterior[i].weight << std::endl;
+        //posterior[i].weight = (float) 1 / kNumParticles_; // Get weights from sensor model here
+        sum = sum + posterior[i].weight;
+    }
+    for (int i = 0; i < kNumParticles_; i++) // Normalization
+    {
+        posterior[i].weight = posterior[i].weight/sum;
     }
 //    cout<<"From computeNormalizedPosterior " <<posterior[0].pose.x<<" " << proposal[0].pose.x<<endl;
     return posterior;

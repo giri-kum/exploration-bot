@@ -69,6 +69,8 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
     map.operator()(100,130) = -127;
     map.operator()(100,131) = 127;
 */
+
+    //std::cout << "pose: (" << pose.x << ", " << pose.y << ", " << pose.theta << ")" << std::endl;
     
     // Iterate through scans
     for (i = 0; i < scan.num_ranges; i++) {
@@ -104,6 +106,9 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
         // Convert self pose to cell
         self_cell = global_position_to_grid_cell(self_global, map);
 
+        // Check if cells are in grid
+        if (!map.isCellInGrid(las_cell.x, las_cell.y) || !map.isCellInGrid(self_cell.x, self_cell.y)) continue;
+
         //std::cout << "las_cell (x, y): " << las_cell.x << ", " << las_cell.y << " self_cell (x, y): " << self_cell.x << ", " << self_cell.y << std::endl;
 
         // Find quadrant (1-4)
@@ -122,7 +127,9 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
         else if (th_global >= -3*M_PI/4 && th_global < -M_PI/4) quad = 4;
         //std::cout << "th_global: " << th_global << " quad: " << quad << "cell: " << las_cell.x << ", " << las_cell.y << std::endl;
         //if (quad == 0) std::cout << "quad is zero!" << std::endl;
-        if (quad == 0) std::cout << "error! quad == 0" << std::endl;
+        if (quad == 0) {
+            std::cout << "error! quad == 0, th_global = " << th_global << ", pose = " << std::endl;
+        }
         
         // Get properties of line
         deltax = las_cell.x - self_cell.x; //**should not be zero**
@@ -173,18 +180,23 @@ void Mapping::updateMap(const lidar_t& scan, const pose_xyt_t& pose, OccupancyGr
             if (quad == 1) {
                 x++;
                 not_done = x < las_cell.x;
+                //std::cout << "quad 1: x = " << x << " las_cell.x = " << las_cell.x << std::endl;
             }
             else if (quad == 2) {
                 y++;
                 not_done = y < las_cell.y;
+                //std::cout << "quad 2: y = " << y << " las_cell.y = " << las_cell.y << std::endl;
+
             }
             else if (quad == 3) {
                 x--;
                 not_done = x > las_cell.x;
+                //std::cout << "quad 3: x = " << x << " las_cell.x = " << las_cell.x << std::endl;
             }
             else if (quad == 4) {
                 y--;
                 not_done = y > las_cell.y;
+                //std::cout << "quad 4: y = " << y << " las_cell.y = " << las_cell.y << std::endl;
             }
         }
         

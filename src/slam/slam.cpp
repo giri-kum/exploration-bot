@@ -72,6 +72,10 @@ void OccupancyGridSLAM::runSLAM(void)
         {
             // Then run an iteration of our SLAM algorithm
             runSLAMIteration();
+
+            //static int i = 0;
+            //std::cout << "iteration " << i << std::endl;
+            //i++;
         }
         // Otherwise, do a quick spin while waiting for data rather than using more complicated condition variable.
         else
@@ -193,7 +197,9 @@ void OccupancyGridSLAM::runSLAMIteration(void)
     if(currentScan_.num_ranges > 100)//250)
     {
         updateLocalization();
+        //std::cout << "localization complete!" << std::endl;
         updateMap();
+        //std::cout << "mapping complete!" << std::endl;
     }
     else 
     {
