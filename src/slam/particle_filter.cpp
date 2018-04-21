@@ -18,14 +18,14 @@ void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
 {
 
     ///////////// TODO: Implement your method for initializing the particles in the particle filter /////////////////
-/*    for (int i = 0; i < kNumParticles_; i++) {
+    for (int i = 0; i < kNumParticles_; i++) {
         posterior_[i].parent_pose = pose;
         posterior_[i].pose = pose;
         posterior_[i].weight = (float) 1 / kNumParticles_;
     }
     //std::cout<<"Particles initialized to pose : ("<<pose.x<<", "<<pose.y<<", "<<pose.theta<<", "<<pose.utime<<", "<<posterior_[kNumParticles_-1].weight<<") \n";
-    */
-   initializeUniformPosteriorDistribution(pose);
+
+   //initializeUniformPosteriorDistribution(pose); // Debug, uncomment later
 }
 
 void ParticleFilter::initializeGaussianPosteriorDistribution(const pose_xyt_t& pose)
@@ -70,11 +70,11 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
     
     if(hasRobotMoved)
     {
-        /*
-        for (int i = 0; i < kNumParticles_; i++) 
+        
+        /*for (int i = 0; i < kNumParticles_; i++) 
         {
             posterior_[i] = actionModel_.applyAction(posterior_[i]);
-            posterior_[i].weight = 1; //1 / kNumParticles_;
+            posterior_[i].weight = 1;//1 / kNumParticles_;
         }
         */
         auto prior = new_resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
@@ -216,9 +216,9 @@ pose_xyt_t ParticleFilter::estimatePosteriorPose(const std::vector<particle_t>& 
         //cart_y = sin(pose.theta) + posterior[i].weight*sin(posterior[i].pose.theta);
         pose.theta = pose.theta + posterior[i].weight*posterior[i].pose.theta;//atan2(cart_y,cart_x);
     }
-//    pose.x = pose.x/kNumParticles_;
-//    pose.y = pose.y/kNumParticles_;
-//    pose.theta = pose.theta/kNumParticles_;
+//    pose.x = pose.x/kNumParticles_; // Debug, comment later
+//    pose.y = pose.y/kNumParticles_; // Debug, comment later
+//    pose.theta = pose.theta/kNumParticles_; // Debug, comment later
     pose.utime = posterior[kNumParticles_-1].pose.utime;    
     return pose;
 }

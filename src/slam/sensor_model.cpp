@@ -75,7 +75,11 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     return q
     */
 
-
+    // Interpolation
+    float r_las;                // distance from self to laser scan termination (m)
+    float th_global;
+    MovingLaserScan moveLaser(scan, sample.parent_pose, sample.pose);
+    adjusted_ray_t adjLaser;
 
 	//probability of this point being the right one
     double q = 1;
@@ -86,6 +90,18 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
         //print out for calibration
         //std::cout << "theta " << scan.thetas[k] << " dist: " << scan.ranges[k] << std::endl;
 
+
+        //If we are not using the adjusted laser, use this
+        r_las = scan.ranges[k];
+        th_global = scan.thetas[k];
+
+
+        // If we are using adjusted laser, use this
+        //Extract laser data
+        adjLaser = moveLaser[k];
+        r_las = adjLaser.range;
+        th_global = adjLaser.theta;
+
     	//probabilities of for actual hit, max range, short, or random noise
     	double p_hit = 0;
     	double p_max = 0;
@@ -93,15 +109,16 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     	double p_rand = 0;
 
     	//calculate z_tk*
-    	double z_est = raycast_dist(sample, map, scan.thetas[k]);
+    	//double z_est = raycast_dist(sample, map, scan.thetas[k]);
+        double z_est = raycast_dist(sample, map, th_global);
         //std::cout << "k      " << k << "   z_est:   " << z_est << "   z_meas   " << scan.ranges[k] << "     q" << q << std::endl;
         //double simp_z_est = simple_raycast_dist(sample, map, scan.thetas[k]);
 
     	//p = zhit * phit(ztk | xt, m) + zshort * pshort(ztk | xt, m) + zmax * pmax(ztk | xt, m) + zrand * prand(ztk | xt, m)
 
-    	if ( (0 <= scan.ranges[k]) && (scan.ranges[k] <= z_max)) {
-    		float hit_dist = 1.0 / (std::sqrt(2.0 * M_PI * std::pow(sigma_hit, 2)  )) * std::exp(-1.0/2.0 * std::pow((scan.ranges[k] - z_est), 2) / std::pow(sigma_hit, 2) );
-    		float hit_normalizer = 1.0 / ((std::sqrt(2.0 * M_PI * std::pow(sigma_hit, 2) )) * ( (-1.25331 * sigma_hit * std::erf(.707107 * (z_est - scan.ranges[k]) / sigma_hit )) - (-1.25331 * sigma_hit * std::erf(.707107 * (z_est) / sigma_hit )) ) +.000000000000000000000001);
+    	if ( (0 <= r_las) && (r_las <= z_max)) {
+    		float hit_dist = 1.0 / (std::sqrt(2.0 * M_PI * std::pow(sigma_hit, 2)  )) * std::exp(-1.0/2.0 * std::pow((r_las - z_est), 2) / std::pow(sigma_hit, 2) );
+    		float hit_normalizer = 1.0 / ((std::sqrt(2.0 * M_PI * std::pow(sigma_hit, 2) )) * ( (-1.25331 * sigma_hit * std::erf(.707107 * (z_est - r_las) / sigma_hit )) - (-1.25331 * sigma_hit * std::erf(.707107 * (z_est) / sigma_hit )) ) +.000000000000000000000001);
     		p_hit = hit_normalizer * hit_dist;
             //std::cout << "hit stuff    " << hit_dist << "            " << hit_normalizer << std::endl;
             if(p_hit > 1) p_hit = .999;
@@ -109,15 +126,15 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
         
         //std::cout << "z_hit         " << z_hit << "        phit         " << p_hit << std::endl;
 
-    	if ( (0 <= scan.ranges[k]) && (scan.ranges[k] <= z_est) ) {
+    	if ( (0 <= r_las) && (r_las <= z_est) ) {
     		p_short = 1/(1-std::exp(-lambda_short * z_est)) * lambda_short * std::exp(-lambda_short * z_est);
     	}
 
-    	if (scan.ranges[k] >= z_max) {
+    	if (r_las >= z_max) {
     		p_max = 1;
     	}
 
-    	if (scan.ranges[k] < z_max) {
+    	if (r_las < z_max) {
     		p_rand = 1 / z_max;
     	}
 
