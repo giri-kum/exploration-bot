@@ -31,7 +31,7 @@ void ParticleFilter::initializeGaussianPosteriorDistribution(const pose_xyt_t& p
         posterior_[i].parent_pose.y = pose.y + y_distribution(generator_initial_particle_distribution);
         posterior_[i].parent_pose.theta = pose.theta + theta_distribution(generator_initial_particle_distribution);
         posterior_[i].pose = posterior_[i].parent_pose;
-        posterior_[i].weight = (float) 1 / kNumParticles_; //u must use normalized weights when you pass it to lowvarianceresampler
+        posterior_[i].weight = (float) 1.0 / kNumParticles_; //u must use normalized weights when you pass it to lowvarianceresampler
     }
 }
 
@@ -46,7 +46,7 @@ void ParticleFilter::initializeUniformPosteriorDistribution(const pose_xyt_t& po
         posterior_[i].parent_pose.y = pose.y + y_distribution(generator_initial_particle_distribution);
         posterior_[i].parent_pose.theta = pose.theta + theta_distribution(generator_initial_particle_distribution);
         posterior_[i].pose = posterior_[i].parent_pose;
-        posterior_[i].weight = (float) 1 / kNumParticles_;
+        posterior_[i].weight = (float) 1.0 / kNumParticles_;
     }
 }
 
@@ -69,11 +69,11 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
             posterior_[i].weight = 1;//1 / kNumParticles_;
         }
         */
-        auto prior = new_resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
+        auto prior = resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
         auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
         posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
         posteriorPose_ = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
-        std::cout << "Slam Pose: (" << posteriorPose_.x << ", " << posteriorPose_.y << ", " << posteriorPose_.theta << ")\n";
+        //std::cout << "Slam Pose: (" << posteriorPose_.x << ", " << posteriorPose_.y << ", " << posteriorPose_.theta << ")\n";
     }
 
     // DEBUG
@@ -125,7 +125,7 @@ std::vector<particle_t> ParticleFilter::resamplePosteriorDistribution(void)
             }
         prior[j] = posterior_[index];
 //        prior[j].weight = (float) 1/kNumParticles_;
-        threshold = threshold + (float) (1/kNumParticles_);
+        threshold = threshold + (float) (1.0/kNumParticles_);
     }
 //    cout<<"From resamplePosteriorDistribution " <<prior[0].pose.x<<" " << posterior_[0].pose.x<<endl;
     
@@ -141,7 +141,7 @@ bool compare_this(particle_t a,particle_t b)
 std::vector<particle_t> ParticleFilter::new_resamplePosteriorDistribution(void)
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
-    int new_size = kNumParticles_; // Make sure this number can perfect divide kNumParticles_ (which is 200 by default) without any remainder
+    int new_size = kNumParticles_/4; // Make sure this number can perfect divide kNumParticles_ (which is 200 by default) without any remainder
     std::vector<particle_t> prior(kNumParticles_), temp(new_size);
     prior = posterior_;    
     std::sort(prior.begin(),prior.end(),compare_this);
@@ -206,18 +206,17 @@ pose_xyt_t ParticleFilter::estimatePosteriorPose(const std::vector<particle_t>& 
     pose.x = 0;
     pose.y = 0;
     pose.theta = 0;
-//    float cart_x = 0, cart_y = 0;
+    float cart_x = 0, cart_y = 0;
     for(int i = 0; i< kNumParticles_; i++)
     {
 
-        //std::cout << "weight: " << posterior[i].weight << std::endl;
-
+        //std::cout << "x: " << posterior[i].pose.x << "  y: " << posterior[i].pose.y << "  weight: " << posterior[i].weight << std::endl;
         pose.x = pose.x + posterior[i].weight*posterior[i].pose.x;
         pose.y = pose.y + posterior[i].weight*posterior[i].pose.y;
-        //cart_x = cos(pose.theta) + posterior[i].weight*cos(posterior[i].pose.theta);
-        //cart_y = sin(pose.theta) + posterior[i].weight*sin(posterior[i].pose.theta);
-        pose.theta = pose.theta + posterior[i].weight*posterior[i].pose.theta;//atan2(cart_y,cart_x);
+        cart_x += posterior[i].weight*cos(posterior[i].pose.theta);
+        cart_y += posterior[i].weight*sin(posterior[i].pose.theta);     
     }
+    pose.theta = atan2(cart_y,cart_x); //pose.theta + posterior[i].weight*posterior[i].pose.theta;
 //    pose.x = pose.x/kNumParticles_; // Debug, comment later
 //    pose.y = pose.y/kNumParticles_; // Debug, comment later
 //    pose.theta = pose.theta/kNumParticles_; // Debug, comment later

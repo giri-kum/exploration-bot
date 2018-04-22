@@ -404,7 +404,7 @@ double SensorModel::staff_solution(const particle_t& sample, const lidar_t& scan
     const float kMaxLaserDistance = 10.0f;
     const float kMinRayLength = 0.2f;
     const float kSigmaLaser = 0.05;
-    
+
     double scanLikelihood = 0.0;
     
     MovingLaserScan movingScan(scan, sample.parent_pose, sample.pose);
