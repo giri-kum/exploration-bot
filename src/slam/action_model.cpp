@@ -47,8 +47,8 @@ ActionModel::ActionModel(void)
 
 	float a1_rot = 0.1; //0.1 rad; backup_value = 0.0005; set {0,sqrt(0.03), sqrt(0.0025)}
 	float a2_rot_from_trans = 0.5; // rad/m; backup_value = 0.001 or 0.0001; set = {0.125,sqrt(30),sqrt(0.0001)}
-	float a3_trans = 0.0025; // m; backup_value = 0.05; set = {0.1,1,sqrt(0.5)}
-	float a4_trans_from_rot = 0.001;
+	float a3_trans = sqrt(0.0025);//0.0025; // m; backup_value = 0.05; set = {0.1,1,sqrt(0.5)}
+	float a4_trans_from_rot = 0.0001; //0.001
 	
 
 	float beta[4] = {a1_rot, a2_rot_from_trans, a3_trans, a4_trans_from_rot};  //for debugging {(float)0.0005/factor,(float)0.001/factor, (float)0.05/factor, (float)0.001/factor}; 
@@ -119,7 +119,7 @@ particle_t ActionModel::applyAction(const particle_t& sample)
 	new_particle.pose.x = sample.pose.x + del_bar_trans*cos(sample.pose.theta + del_bar_rot1);
 	new_particle.pose.y = sample.pose.y + del_bar_trans*sin(sample.pose.theta + del_bar_rot1);
 	//std::cout << "thetas " << del_bar_rot1 - del_rot1 << " " << del_bar_rot2 - del_rot2 << std::endl;
-	new_particle.pose.theta = wrap_angle(sample.pose.theta + del_bar_rot1 + del_bar_rot2); // Don't forget to wrap the angle
+	new_particle.pose.theta = sample.pose.theta + del_bar_rot1 + del_bar_rot2; // Don't forget to wrap the angle
 
 	new_particle.pose.utime = time_stamp; // what time stamp should be given here
 	}

@@ -242,6 +242,12 @@ robot_path_t search_for_path(pose_xyt_t start,
     }
     calc_final_path(ngoal, closedset, &path, distances);
 
+    // DEBUG - print final path
+    for (i = 0; i < path.path.size(); i++) {
+        std::cout << "(" << path.path[i].x << ", " << path.path[i].y << ", " << path.path[i].theta << "), ";
+    }
+    std::cout << std::endl;
+
     // Check final theta
     /*int path_length = path.path.size();
     if (path.path[path_length].theta != goal.theta) {
@@ -270,7 +276,7 @@ float calc_h(Node ngoal, int x, int y, const ObstacleDistanceGrid& distances, co
     float d = w1 * sqrt(pow((ngoal.x - x), 2) + pow((ngoal.y - y), 2));
     
     // Add obstacle distance cost
-    float w2 = 1;
+    float w2 = 0;
     float od = 0;
     if (distances(x, y) <= params.maxDistanceWithCost) {
         od = w2 * pow(distances.cellsPerMeter() * (params.maxDistanceWithCost - distances(x, y)), params.distanceCostExponent);
@@ -311,8 +317,13 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
     //std::cout << "(" << ngoalx << ", " << ngoaly << ") ";
 
     // add goal point
-    next.x = distances.originInGlobalFrame().x + ngoal.x*distances.metersPerCell();
-    next.y = distances.originInGlobalFrame().y + ngoal.y*distances.metersPerCell();
+    //next.x = distances.originInGlobalFrame().x + ngoal.x*distances.metersPerCell();
+    //next.y = distances.originInGlobalFrame().y + ngoal.y*distances.metersPerCell();
+
+    Point<float> goal_point = cell_to_global(ngoal.x, ngoal.y, distances);
+    next.x = goal_point.x;
+    next.y = goal_point.y;
+
     temp_path.path.push_back(next);
     path_size++;
 
@@ -330,8 +341,12 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
         n = closedset[pind];
 
         // add next coordinate to temp_path
-        next.x = distances.originInGlobalFrame().x + n.x*distances.metersPerCell();
-        next.y = distances.originInGlobalFrame().y + n.y*distances.metersPerCell();
+        //next.x = distances.originInGlobalFrame().x + n.x*distances.metersPerCell();
+        //next.y = distances.originInGlobalFrame().y + n.y*distances.metersPerCell();
+        Point<float> next_point = cell_to_global(n.x, n.y, distances);
+        next.x = next_point.x;
+        next.y = next_point.y;
+
         temp_path.path.push_back(next);
         pind = n.pind;
 
@@ -343,8 +358,14 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
 
     // add second pose to path
     if (path_size > 1) {
+
         next = temp_path.path[path_size - 2];
-        theta = atan2(next.y - path->path[0].y, next.x - path->path[0].x);
+        Point<int> next_cell = global_to_cell(next.x, next.y, distances);
+        Point<int> prev_cell = global_to_cell(path->path[0].x, path->path[0].y, distances);
+        theta = atan2(next_cell.y - prev_cell.y, next_cell.x - prev_cell.x);
+
+        //theta = atan2(next.y - path->path[0].y, next.x - path->path[0].x);
+
         next.theta = theta;
         path->path.push_back(next);
     }
@@ -362,7 +383,13 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
         next = temp_path.path[path_size - i - 1];
         
         // Check if point is on the same line
-        theta = atan2(next.y - path->path[j - 1].y, next.x - path->path[j - 1].x);
+        //int next_cell_y = static_cast<int>((next.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
+        //int next_cell = static_cast<int>((next.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
+
+        Point<int> next_cell = global_to_cell(next.x, next.y, distances);
+        Point<int> prev_cell = global_to_cell(path->path[j-1].x, path->path[j-1].y, distances);
+        //theta = atan2(next.y - path->path[j - 1].y, next.x - path->path[j - 1].x);
+        theta = atan2(next_cell.y - prev_cell.y, next_cell.x - prev_cell.x);
         next.theta = theta;
         
         // Check if point is the same angle
@@ -375,13 +402,31 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
             j++; // iterate
 
             // add turn
-            turn = path->path[j - 1];
-            turn.theta = theta;
-            path->path.push_back(turn);
-            j++;
+            //turn = path->path[j - 1];
+            //turn.theta = theta;
+            //path->path.push_back(turn);
+            //j++;
         }
     }
 
+}
+
+Point<int> global_to_cell(float x, float y, const ObstacleDistanceGrid& distances) {
+    
+    Point<int> output;
+    output.x  = static_cast<int>((x - distances.originInGlobalFrame().x) * distances.cellsPerMeter());
+    output.y = static_cast<int>((y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
+
+    return output;
+}
+
+Point<float> cell_to_global (int x, int y, const ObstacleDistanceGrid& distances) {
+    
+    Point<float> output;
+    output.x = distances.originInGlobalFrame().x + x*distances.metersPerCell();
+    output.y = distances.originInGlobalFrame().y + y*distances.metersPerCell();
+
+    return output;
 }
 
 /*

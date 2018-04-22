@@ -6,6 +6,7 @@
 #include <queue>
 #include <math.h>
 #include <vector>
+#include <common/point.hpp>
 
 class ObstacleDistanceGrid;
 
@@ -82,6 +83,9 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
 
 // Print sets for debugging
 //void print_sets(const Node * openset, const Node * closedset);
+
+Point<int> global_to_cell(float x, float y, const ObstacleDistanceGrid& distances);
+Point<float> cell_to_global (int x, int y, const ObstacleDistanceGrid& distances);
 
 
 #endif // PLANNING_ASTAR_HPP

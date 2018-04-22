@@ -73,8 +73,9 @@ int BotGui::onMouseEvent(vx_layer_t* layer,
                          vx_mouse_event_t* event, 
                          Point<float> worldPoint)
 {
+
     // If a Ctrl + Left-click, send a robot_path_t with a single position
-    if((event->button_mask & VX_BUTTON1_MASK) && (event->modifiers & VX_CTRL_MASK))
+    /*if((event->button_mask & VX_BUTTON1_MASK) && (event->modifiers & VX_CTRL_MASK))
     {
         pose_xyt_t odomPose;
         odomPose.x = odometry_.x;
@@ -114,6 +115,8 @@ int BotGui::onMouseEvent(vx_layer_t* layer,
     }
     // If an Right-click, send a target to the A* planner
     else if((event->button_mask & VX_BUTTON3_MASK) && (event->modifiers == 0))
+    */
+    if((event->button_mask & VX_BUTTON1_MASK) && (event->modifiers & VX_CTRL_MASK))
     {
         std::cout << "Planning path to " << worldPoint << "...";
         int64_t startTime = utime_now();
