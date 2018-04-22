@@ -73,7 +73,7 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
         auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
         posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
         posteriorPose_ = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
-        //std::cout << "Slam Pose: (" << posteriorPose_.x << ", " << posteriorPose_.y << ", " << posteriorPose_.theta << ")\n";
+        std::cout << "Slam Pose: (" << posteriorPose_.x << ", " << posteriorPose_.y << ", " << posteriorPose_.theta << ")\n";
     }
 
     // DEBUG

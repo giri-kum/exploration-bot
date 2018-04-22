@@ -13,7 +13,7 @@ int main(int argc, char** argv)
     const char* kUseOptitrackArg = "use-optitrack";
     const char* kMappingOnlyArg = "mapping-only";
     const char* kLocalizationOnlyArg = "localization-only";
-    
+
     // Handle Options
     getopt_t *gopt = getopt_create();
     getopt_add_bool(gopt, 'h', "help", 0, "Show this help"); 

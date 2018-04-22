@@ -34,8 +34,8 @@ SensorModel::SensorModel(void)
     //pulled from data sheet
     z_max = 40;
 
-    z_short = 0.0018;
-    z_rand = 0.0000000001;
+    z_short = 0.0; //0.0018;
+    z_rand = 0.0; //00000001;
 
     /*
     //both these seem to be very small

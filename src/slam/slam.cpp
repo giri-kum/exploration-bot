@@ -90,7 +90,7 @@ void OccupancyGridSLAM::runSLAM(void)
 void OccupancyGridSLAM::handleLaser(const lcm::ReceiveBuffer* rbuf, const std::string& channel, const lidar_t* scan)
 {
     const int kNumIgnoredForMessage = 10;   // number of scans to ignore before printing a message about odometry
-//std::cout << "laser!\n";    
+    //std::cout << "laser!\n";    
     std::lock_guard<std::mutex> autoLock(dataMutex_);
     // Ignore scans until odometry data arrives -- need odometry before a scan to safely built the map
     bool haveOdom = (mode_ != mapping_only) // For full SLAM, odometry data is needed.
