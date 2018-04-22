@@ -102,6 +102,7 @@ private:
     /////////// TODO: Add any state variables you might need here //////////////
     
     pose_xyt_t   currentTarget_;    // Current target robot is driving to
+    Point<int>   currentTargetCell_;    // Cell of current target
     OccupancyGrid exploredMap_;     // Map found after completing the RETURNING_HOME state
     
     size_t prev_frontier_size;
@@ -109,7 +110,7 @@ private:
     int64_t most_recent_path_time;
 //    int8_t path_redundancy_count;
 
-    
+
 
     /////////////////////////// End student code ///////////////////////////////
     

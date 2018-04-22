@@ -184,7 +184,7 @@ robot_path_t search_for_path(pose_xyt_t start,
             
             // Check if cell is safe
             //if (distances(new_node.x, new_node.y) <= std::ceil(params.minDistanceToObstacle)) continue;
-            if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle*2) continue;
+            if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle*1.5) continue;
             //if (distances(new_node.x, new_node.y) == 0) continue;
             //std::cout << "distance: " << distances(new_node.x, new_node.y) << " , min: " << params.minDistanceToObstacle << std::endl;
 

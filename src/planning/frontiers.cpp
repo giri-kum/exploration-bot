@@ -101,37 +101,109 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
     */
     robot_path_t path_to_frontier;
 
+    int foundGoal = false;
+
     // Frontier size
     int frontier_size = frontiers.size();
+    int temp_frontier_size;
 
     // Midpoint vector
-    std::vector<Point<float>> midpoints[frontier_size];
+    Point<float> midpoints[frontier_size];
+    Point<float> slope[frontier_size];
 
-    // Get midpoint of each frontier
+    // Get midpoint and slope of each frontier
     for (int i = 0; i < frontier_size; i++) {
-        std::vector<Point<float>> tempFrontier = frontiers[i];
-        midpoints[i] = tempFrontier[std::ceil(tempFrontier.size()/2)];
+        frontier_t tempFrontier = frontiers[i];
+        std::vector<Point<float>> tempFrontierVec = tempFrontier.cells;
+        temp_frontier_size = tempFrontierVec.size();
+        midpoints[i] = tempFrontierVec[temp_frontier_size/2];
+        slope[i].x = tempFrontierVec[temp_frontier_size].x - tempFrontierVec[0].x;
+        slope[i].y = tempFrontierVec[temp_frontier_size].y - tempFrontierVec[0].y;
     }
 
+    
     // Find frontier with minimum distance to robot
+    float min_dist = 100000;
+    int min_ind = -1;
+    /*float temp_dist;
     for (int i = 0; i < frontier_size; i++) {
+        temp_dist = sqrt(pow(midpoints[i].x - robotPose.x, 2) + pow(midpoints[i].y - robotPose.y, 2));
+        if (temp_dist < min_dist) {
+            min_dist = temp_dist;
+            min_ind = i;
+        }
+    }
+    */
 
-    } 
+    pose_xyt_t goalPose;
+    for (min_ind = 0; min_ind < frontier_size; min_ind++) {
 
-    // Find cell that is greater than robot radius away from frontier and in free space
-    for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) {
+        Point<float> goalPoint = find_free_neighbor(midpoints[min_ind], slope[min_ind], map);
 
+        // Create goal pose
+        //pose_xyt_t goalPose;
+        goalPose.x = goalPoint.x;
+        goalPose.y = goalPoint.y;
+        goalPose.theta = 0;
+
+        path_to_frontier = planner.planPath(robotPose, goalPose);
+
+        // Check if frontier point is a valid goal
+        if (path_to_frontier.path.size() > 1) break;
+
+    }
+
+    if (path_to_frontier.path.size() == 1) std::cout << "no reachable frontiers\n";
+
+    //pose_xyt_t goalPose;
+
+    /*while (!foundGoal) {
+
+        // Find cell that is greater than robot radius away from frontier and in free space
+        Point<float> goalPoint = find_free_neighbor(midpoints[min_ind], slope[min_ind], map);
+
+        // Create goal pose
+        //pose_xyt_t goalPose;
+        goalPose.x = goalPoint.x;
+        goalPose.y = goalPoint.y;
+        goalPose.theta = 0;
+
+        // Check if frontier point is a valid goal
+        if (planner.isValidGoal(goalPose)) break;
+
+    }
+
+    // Plan path
+    path_to_frontier = planner.planPath(robotPose, goalPose);
+    */
+
+    return path_to_frontier;
+}
+
+Point<float> find_free_neighbor(Point<float> frontier_cell, Point<int> slope, const OccupancyGrid& map) {
+
+    /*const int kNumNeighbors = 4;
+    const int xDeltas[] = { -1, 1, 0, 0 };
+    const int yDeltas[] = { 0, 0, 1, -1 };
+
+    Point<float> neighbor;
+    
+    for(int n = 0; n < kNumNeighbors; ++n)
+    {
+        // Find free neighbor
+        // Note that logOdds returns 0 for out-of-map cells, so no explicit check is needed.
+        if(map.logOdds(x + xDeltas[n], y + yDeltas[n]) < 0)
+        {
+            neighbor.x = x + xDeltas[n];
+            neighbor.y = y + yDeltas[n];
+            break;
         }
     }
 
-    // Check if frontier point is a valid goal
-    
+    return neighbor;*/
 
-    // Plan path
-    
-    
-    return emptyPath;
+    return frontier_cell;
+
 }
 
 

@@ -243,10 +243,22 @@ int8_t Exploration::executeExploringMap(bool initialize)
     *           explored more of the map.
     *       -- You will likely be able to see the frontier before actually reaching the end of the path leading to it.
     */
+
+    // Local Variables
+    int path_is_not_safe = false;
+    int frontier_has_been_explored = true;
     
-    // Check if last frontier has been explored or if the current path is not safe
-    int path_is_not_safe = !planner_.isPathSafe(currentPath_);
-    int frontier_has_been_explored = 0; /*ADD CHECK*/
+    // Check if there is currently a path
+    if (currentPath_.path.size() > 0) {
+
+        // Check if last frontier has been explored or if the current path is not safe
+        path_is_not_safe = !planner_.isPathSafe(currentPath_);
+
+        // Check if frontier has been explored
+        frontier_has_been_explored = false;
+        if (currentMap_.logOdds(currentTargetCell_.x, currentTargetCell_.y) != 0) frontier_has_been_explored = true;
+
+    }
 
     if (path_is_not_safe || frontier_has_been_explored) {
         // Find new frontiers
@@ -255,6 +267,9 @@ int8_t Exploration::executeExploringMap(bool initialize)
         // If there are still frontiers to explore, plan path
         if (!frontiers_.empty()) {
             currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
+            currentTarget_ = currentPath_.path[currentPath_.path.size()];
+            currentTargetCell_ = Point<int>(static_cast<int>((currentTarget_.x - currentMap_.originInGlobalFrame().x) * currentMap_.cellsPerMeter()),
+                      static_cast<int>((currentTarget_.y - currentMap_.originInGlobalFrame().y) * currentMap_.cellsPerMeter()));
         }
     }
 

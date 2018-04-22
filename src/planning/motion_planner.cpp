@@ -79,7 +79,7 @@ bool MotionPlanner::isPathSafe(const robot_path_t& path) const
 
     // Iterate through path and check if each point is safe
     for (int i = 0; i < path.path_length; i++) {
-        if (!isValidGoal(path[i])) return false;
+        if (!isValidGoal(path.path[i])) return false;
     }
 
     return true;
