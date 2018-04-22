@@ -31,14 +31,14 @@ void ParticleFilter::initializeGaussianPosteriorDistribution(const pose_xyt_t& p
         posterior_[i].parent_pose.y = pose.y + y_distribution(generator_initial_particle_distribution);
         posterior_[i].parent_pose.theta = pose.theta + theta_distribution(generator_initial_particle_distribution);
         posterior_[i].pose = posterior_[i].parent_pose;
-        posterior_[i].weight = 1; //(float) 1 / kNumParticles_;
+        posterior_[i].weight = (float) 1 / kNumParticles_; //u must use normalized weights when you pass it to lowvarianceresampler
     }
 }
 
 void ParticleFilter::initializeUniformPosteriorDistribution(const pose_xyt_t& pose)
 {
    default_random_engine generator_initial_particle_distribution; //must to seeded only once
-   float dev[] = {0.05,0.05,0.0}; // stddev in x,y,theta
+   float dev[] = {0.05,0.05,0.0};//{0.05,0.05,0.0}; // stddev in x,y,theta
    uniform_real_distribution<float> x_distribution(-dev[0],dev[0]), y_distribution(-dev[1],dev[1]), theta_distribution(-dev[2],dev[2]); // Consider uniform distribution for kidnapped robot case
     
    for (int i = 0; i < kNumParticles_; i++) {
@@ -46,7 +46,7 @@ void ParticleFilter::initializeUniformPosteriorDistribution(const pose_xyt_t& po
         posterior_[i].parent_pose.y = pose.y + y_distribution(generator_initial_particle_distribution);
         posterior_[i].parent_pose.theta = pose.theta + theta_distribution(generator_initial_particle_distribution);
         posterior_[i].pose = posterior_[i].parent_pose;
-        posterior_[i].weight = 1; //(float) 1 / kNumParticles_;
+        posterior_[i].weight = (float) 1 / kNumParticles_;
     }
 }
 
@@ -77,9 +77,9 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
     }
 
     // DEBUG
-    //posteriorPose_.x = 0;
-    //posteriorPose_.y = 0;
-    //posteriorPose_.theta = 0;
+//    posteriorPose_.x = 0;
+//    posteriorPose_.y = 0;
+//    posteriorPose_.theta = 0;
     
     posteriorPose_.utime = odometry.utime;
     
@@ -124,13 +124,13 @@ std::vector<particle_t> ParticleFilter::resamplePosteriorDistribution(void)
                 index++;
             }
         prior[j] = posterior_[index];
-        prior[j].weight = (float) 1/kNumParticles_;
+//        prior[j].weight = (float) 1/kNumParticles_;
         threshold = threshold + (float) (1/kNumParticles_);
     }
 //    cout<<"From resamplePosteriorDistribution " <<prior[0].pose.x<<" " << posterior_[0].pose.x<<endl;
     
 //    prior = posterior_; don't uncomment this unless u want to remove resampling
-    return prior;
+    return Normalize(prior);
 }
 
 bool compare_this(particle_t a,particle_t b)
@@ -150,7 +150,7 @@ std::vector<particle_t> ParticleFilter::new_resamplePosteriorDistribution(void)
     for(int i = 0 ;i < kNumParticles_/new_size; i++)
         prior.insert(prior.end(),temp.begin(),temp.end());
     
-    return prior;
+    return Normalize(prior);
 }
 
 
@@ -174,25 +174,29 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
     /////////// TODO: Implement your algorithm for computing the normalized posterior distribution using the 
     ///////////       particles in the proposal distribution
     std::vector<particle_t> posterior(kNumParticles_);
-    float sum = 0;
     for (int i = 0; i < kNumParticles_; i++) 
     {
         posterior[i] = proposal[i];
-
         posterior[i].weight = sensorModel_.likelihood(proposal[i], laser, map);
-
-        sum = sum + posterior[i].weight;
     }
-    //std::cout << "sum " << sum << std::endl;
 
-    for (int i = 0; i < kNumParticles_; i++) // Normalization
-    {
-        if (sum == 0) posterior[i].weight = 0;
-        else posterior[i].weight = posterior[i].weight/sum;
-    }
-//    cout<<"From computeNormalizedPosterior " <<posterior[0].pose.x<<" " << proposal[0].pose.x<<endl;
-    return posterior;
+    return Normalize(posterior);
 }
+
+
+ std::vector<particle_t> ParticleFilter::Normalize(const std::vector<particle_t>& given_particles)
+ {
+    std::vector<particle_t> result = given_particles;
+    float sum = 0;
+    for (int i = 0; i < result.size(); i++) 
+        sum = sum + result[i].weight;
+    for (int i = 0; i < result.size(); i++) 
+        {
+            if(sum == 0) result[i].weight = 0;
+            else         result[i].weight = result[i].weight/sum;
+        }
+    return result;  
+ }
 
 
 pose_xyt_t ParticleFilter::estimatePosteriorPose(const std::vector<particle_t>& posterior)

@@ -82,7 +82,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     adjusted_ray_t adjLaser;
 
 	//probability of this point being the right one
-    double q = 1;
+    double q = 1; //DEBUG: For log it is made to 0, change it back to 1 if you don't use log() function
     
     //iterate through all of the measurements in the scan
     for (int32_t k = 0; k < scan.num_ranges; k+=(int)(scan.num_ranges/n_samples) ) {
@@ -143,8 +143,12 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
         double q_multiplier = (z_hit * p_hit + z_max * p_max + z_short * p_short + z_rand * p_rand);
 
         //std::cout << z_hit * p_hit << " " << z_max * p_max << " " << z_short * p_short << " " << z_rand * p_rand << " " << q << " " << q_multiplier << std::endl;
-
-    	q = q * q_multiplier;
+/*        if(q_multiplier != 0)
+        {
+            q_multiplier = std::log10(q_multiplier);
+        }
+*/
+    	q = q*q_multiplier;
 
 	}
     
