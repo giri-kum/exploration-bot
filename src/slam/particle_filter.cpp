@@ -23,7 +23,7 @@ void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
 void ParticleFilter::initializeGaussianPosteriorDistribution(const pose_xyt_t& pose)
 {
    default_random_engine generator_initial_particle_distribution; //must to seeded only once
-   float stddev[] = {0.05,0.05,0.0}; // stddev in x,y,theta
+   float stddev[] = {0.0,0.0,0.0}; // stddev in x,y,theta
    normal_distribution<float> x_distribution(0,stddev[0]), y_distribution(0,stddev[1]), theta_distribution(0,stddev[2]); // Consider uniform distribution for kidnapped robot case
    
    for (int i = 0; i < kNumParticles_; i++) {
@@ -38,7 +38,7 @@ void ParticleFilter::initializeGaussianPosteriorDistribution(const pose_xyt_t& p
 void ParticleFilter::initializeUniformPosteriorDistribution(const pose_xyt_t& pose)
 {
    default_random_engine generator_initial_particle_distribution; //must to seeded only once
-   float dev[] = {0.05,0.05,0.0};//{0.05,0.05,0.0}; // stddev in x,y,theta
+   float dev[] = {0.0,0.0,0.0};//{0.05,0.05,0.0}; // stddev in x,y,theta
    uniform_real_distribution<float> x_distribution(-dev[0],dev[0]), y_distribution(-dev[1],dev[1]), theta_distribution(-dev[2],dev[2]); // Consider uniform distribution for kidnapped robot case
     
    for (int i = 0; i < kNumParticles_; i++) {
@@ -150,7 +150,7 @@ std::vector<particle_t> ParticleFilter::new_resamplePosteriorDistribution(void)
     for(int i = 0 ;i < kNumParticles_/new_size; i++)
         prior.insert(prior.end(),temp.begin(),temp.end());
     
-    return Normalize(prior);
+    return prior;
 }
 
 

@@ -69,6 +69,9 @@ private:
     //calculating the distance to obstacle using fake raycasting
     double simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle);
 
+    //doing it using the -4 -8 -12 approach
+    double simple_prob_calc(const particle_t& particle, const lidar_t& scan, const OccupancyGrid& map);
+
 };
 
 #endif // SLAM_SENSOR_MODEL_HPP

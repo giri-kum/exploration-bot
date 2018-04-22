@@ -17,6 +17,15 @@ double sample_gaussian(double variance,double mean)
   	return distribution(generator);
 }
 
+double wrap_angle(double given_angle)
+{
+	double result = given_angle;
+	while(result < - M_PI)
+		result = result + 2*M_PI;
+	while(result >= M_PI)
+		result = result - 2*M_PI;
+	return result;
+}
 
 ActionModel::ActionModel(void)
 {
@@ -24,14 +33,15 @@ ActionModel::ActionModel(void)
 	//float a2_rot_from_trans = 0.01; // rad/m; backup_value = 0.001 or 0.0001; set = {0.125,sqrt(30),sqrt(0.0001)}
 	//float a3_trans = 0.5; // m; backup_value = 0.05; set = {0.1,1,sqrt(0.5)}
 	//float a4_trans_from_rot = 0.01; // m/rad; backup_value = 0.001 or 0.0001; set = {0,sqrt(0.0015),sqrt(0.0005)}
-
-	float a1_rot = 0.005; // rad; backup_value = 0.0005; set {0,sqrt(0.03), sqrt(0.0025)}
-	float a2_rot_from_trans = 0.01; // rad/m; backup_value = 0.001 or 0.0001; set = {0.125,sqrt(30),sqrt(0.0001)}
-	float a3_trans = 0.5; // m; backup_value = 0.05; set = {0.1,1,sqrt(0.5)}
-	float a4_trans_from_rot = 0.01;
-
+	/*
+	float a1_rot = 0.0; // rad; backup_value = 0.0005; set {0,sqrt(0.03), sqrt(0.0025)}
+	float a2_rot_from_trans = 0.0; // rad/m; backup_value = 0.001 or 0.0001; set = {0.125,sqrt(30),sqrt(0.0001)}
+	float a3_trans = 0.0; // m; backup_value = 0.05; set = {0.1,1,sqrt(0.5)}
+	float a4_trans_from_rot = 0.0;
+	
 
 	float beta[4] = {a1_rot, a2_rot_from_trans, a3_trans, a4_trans_from_rot};  //for debugging {(float)0.0005/factor,(float)0.001/factor, (float)0.05/factor, (float)0.001/factor}; 
+    */
     //////////////// TODO: Handle any initialization for your ActionModel /////////////////////////
 	oldpose.x = 0;
 	oldpose.y = 0;
@@ -43,11 +53,19 @@ ActionModel::ActionModel(void)
 	del_rot2 = 0;
 	time_stamp = 0;
 
+	/* Peter's values
+	alpha[0] = 0.01;//beta[0]*beta[0];
+	alpha[1] = 0.0001;//beta[1]*beta[1];
+	alpha[2] = 0.0025;//beta[2]*beta[2];
+	alpha[3] = 0.0001;//beta[3]*beta[3];
+	*/
 
-	alpha[0] = beta[0]*beta[0];
-	alpha[1] = beta[1]*beta[1];
-	alpha[2] = beta[2]*beta[2];
-	alpha[3] = beta[3]*beta[3];
+	alpha[0] = 0.0;//beta[0]*beta[0];
+	alpha[1] = 0.0;//beta[1]*beta[1];
+	alpha[2] = 0.0;//beta[2]*beta[2];
+	alpha[3] = 0.0;//beta[3]*beta[3];
+
+
 }
 
 
@@ -91,7 +109,8 @@ particle_t ActionModel::applyAction(const particle_t& sample)
 	del_bar_rot2 = del_rot2 -sample_gaussian(alpha[0]*del_rot2*del_rot2 + alpha[1]*del_trans*del_trans);
 	new_particle.pose.x = sample.pose.x + del_bar_trans*cos(sample.pose.theta + del_bar_rot1);
 	new_particle.pose.y = sample.pose.y + del_bar_trans*sin(sample.pose.theta + del_bar_rot1);
-	new_particle.pose.theta = sample.pose.theta + del_bar_rot1 + del_bar_rot2; // Don't forget to wrap the angle
+	new_particle.pose.theta = (sample.pose.theta + del_bar_rot1 + del_bar_rot2); // Don't forget to wrap the angle
+
 	new_particle.pose.utime = time_stamp; // what time stamp should be given here
 	}
 		

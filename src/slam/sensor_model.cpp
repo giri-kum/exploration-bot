@@ -58,7 +58,7 @@ SensorModel::SensorModel(void)
 
     tip_val = 0;
 
-    n_samples = 20;
+    n_samples = 180;
 }
 
 
@@ -75,6 +75,18 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     return q
     */
 
+
+    //if term at 1st -4
+      //  if term ebfore -8 
+        //    if term after -12
+          //      sum them all up for 180 rays
+
+
+    return  simple_prob_calc(sample, scan, map);
+
+    /*
+
+
     // Interpolation
     float r_las;                // distance from self to laser scan termination (m)
     float th_global;
@@ -82,7 +94,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     adjusted_ray_t adjLaser;
 
 	//probability of this point being the right one
-    double q = 1; //DEBUG: For log it is made to 0, change it back to 1 if you don't use log() function
+    double q = 0; //DEBUG: For log it is made to 0, change it back to 1 if you don't use log() function
     
     //iterate through all of the measurements in the scan
     for (int32_t k = 0; k < scan.num_ranges; k+=(int)(scan.num_ranges/n_samples) ) {
@@ -143,12 +155,12 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
         double q_multiplier = (z_hit * p_hit + z_max * p_max + z_short * p_short + z_rand * p_rand);
 
         //std::cout << z_hit * p_hit << " " << z_max * p_max << " " << z_short * p_short << " " << z_rand * p_rand << " " << q << " " << q_multiplier << std::endl;
-/*        if(q_multiplier != 0)
+        if(q_multiplier != 0)
         {
             q_multiplier = std::log10(q_multiplier);
         }
-*/
-    	q = q*q_multiplier;
+
+    	q = q + q_multiplier;
 
 	}
     
@@ -160,6 +172,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     //std::cout << "q: " << q << std::endl;
     //printf("%f \n", q);
     return q;
+    */
 }
 
 
@@ -323,3 +336,55 @@ double SensorModel::simple_raycast_dist(const particle_t& sample, const Occupanc
     return 0.0;
 }
 
+
+double SensorModel::simple_prob_calc(const particle_t& sample, const lidar_t& scan, const OccupancyGrid& map) {
+
+
+        //if term at 1st -4
+        //if term before -8 
+        //if term after -12
+        //sum them all up for 180 rays
+
+
+
+    // Interpolation
+    float r_las;                // distance from self to laser scan termination (m)
+    float th_global;
+    MovingLaserScan moveLaser(scan, sample.parent_pose, sample.pose);
+    adjusted_ray_t adjLaser;
+
+    //probability of this point being the right one
+    double q = 0;
+    
+    //iterate through all of the measurements in the scan
+    for (int32_t k = 0; k < scan.num_ranges; k+=(int)(scan.num_ranges/n_samples) ) {
+
+        double q_multiplier = 0;
+
+        //Extract laser data
+        adjLaser = moveLaser[k];
+        r_las = adjLaser.range;
+        th_global = adjLaser.theta;
+
+        double z_est = raycast_dist(sample, map, th_global);
+
+        Point<double> end_position = Point<double>(sample.pose.x + std::cos(th_global) * r_las, sample.pose.y + std::sin(th_global) * r_las);
+        Point<int> end_cell = global_position_to_grid_cell(end_position, map);
+
+        if(map.operator()(end_cell.x,end_cell.y) > tip_val) {
+            q_multiplier = -4;
+        } else if (r_las < z_est) {
+            q_multiplier = -8;
+        } else if (r_las > z_est) {
+            q_multiplier = -12;
+        }
+
+        std::cout << "z_est   " << z_est << "   r_las   " << r_las << "   q_multiplier  " << q_multiplier << std::endl;
+
+        q = q + q_multiplier;
+
+    }
+    
+
+    return q;
+}
