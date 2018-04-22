@@ -83,7 +83,9 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
 
 
     //return  simple_prob_calc(sample, scan, map);
-    return staff_solution(sample, scan, map);
+    double odds =  staff_solution(sample, scan, map);
+    //std::cout << "odds    " << odds << std::endl;
+    return odds;
 
     /*
 
@@ -388,6 +390,11 @@ double SensorModel::simple_prob_calc(const particle_t& sample, const lidar_t& sc
     
 
     return q;
+}
+
+double cell_likelihood(const Point<double> rayEnd, const OccupancyGrid& map) {
+    return map.operator()(rayEnd.x, rayEnd.y);
+
 }
 
 double SensorModel::staff_solution(const particle_t& sample, const lidar_t& scan, const OccupancyGrid& map) {
