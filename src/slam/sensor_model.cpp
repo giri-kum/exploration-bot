@@ -334,6 +334,7 @@ double SensorModel::raycast_dist(const particle_t& sample, const OccupancyGrid& 
 
 
 //dumb raycast that just does simple math to test
+<<<<<<< HEAD
 double SensorModel::simple_raycast_dist(const particle_t& sample, const OccupancyGrid& map, float angle) {
 
     return 0.0;
