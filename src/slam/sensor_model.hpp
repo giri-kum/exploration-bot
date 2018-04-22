@@ -72,6 +72,9 @@ private:
     //doing it using the -4 -8 -12 approach
     double simple_prob_calc(const particle_t& particle, const lidar_t& scan, const OccupancyGrid& map);
 
+    //for testing versus ours
+    double staff_solution(const particle_t& particle, const lidar_t& scan, const OccupancyGrid& map);
+
 };
 
 #endif // SLAM_SENSOR_MODEL_HPP
