@@ -285,14 +285,16 @@ bool is_safe_cell(int x, int y, double robotRadius, const OccupancyGrid& map)
 {
     // Search a circular region around (x, y). If any of the cells within the robot radius are occupied, then the
     // cell isn't safe.
-    const int kSafeCellRadius = std::lrint(std::ceil(robotRadius * map.cellsPerMeter()));
+    //const int kSafeCellRadius = std::lrint(std::ceil(robotRadius * map.cellsPerMeter()));
+    const int kSafeCellRadius = robotRadius * map.cellsPerMeter();
     
+    // CHANGEING TO < instead of <= - JS
     for(int dy = -kSafeCellRadius; dy <= kSafeCellRadius; ++dy)
     {
         for(int dx = -kSafeCellRadius; dx <= kSafeCellRadius; ++dx)
         {
-            // Ignore the corners of the square region, where outside the radius of the robot
-            if(std::sqrt(dx*dx + dy*dy) * map.metersPerCell() > robotRadius)
+            // Ignore the corners of the square region, where outside the radius of the robot // added = -JS
+            if(std::sqrt(dx*dx + dy*dy) * map.metersPerCell() >= robotRadius)
             {
                 continue;
             }

@@ -244,6 +244,20 @@ int8_t Exploration::executeExploringMap(bool initialize)
     *       -- You will likely be able to see the frontier before actually reaching the end of the path leading to it.
     */
     
+    // Check if last frontier has been explored or if the current path is not safe
+    int path_is_not_safe = !planner_.isPathSafe(currentPath_);
+    int frontier_has_been_explored = 0; /*ADD CHECK*/
+
+    if (path_is_not_safe || frontier_has_been_explored) {
+        // Find new frontiers
+        frontiers_ = find_map_frontiers(currentMap_, currentPose_);
+
+        // If there are still frontiers to explore, plan path
+        if (!frontiers_.empty()) {
+            currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
+        }
+    }
+
     /////////////////////////////// End student code ///////////////////////////////
     
     /////////////////////////   Create the status message    //////////////////////////
@@ -303,6 +317,7 @@ int8_t Exploration::executeReturningHome(bool initialize)
     */
     
 
+    //currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
 
     /////////////////////////////// End student code ///////////////////////////////
     

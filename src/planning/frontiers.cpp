@@ -99,7 +99,37 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
     *   - The cells along the frontier might not be in the configuration space of the robot, so you won't necessarily
     *       be able to drive straight to a frontier cell, but will need to drive somewhere close.
     */
-    robot_path_t emptyPath;
+    robot_path_t path_to_frontier;
+
+    // Frontier size
+    int frontier_size = frontiers.size();
+
+    // Midpoint vector
+    std::vector<Point<float>> midpoints[frontier_size];
+
+    // Get midpoint of each frontier
+    for (int i = 0; i < frontier_size; i++) {
+        std::vector<Point<float>> tempFrontier = frontiers[i];
+        midpoints[i] = tempFrontier[std::ceil(tempFrontier.size()/2)];
+    }
+
+    // Find frontier with minimum distance to robot
+    for (int i = 0; i < frontier_size; i++) {
+
+    } 
+
+    // Find cell that is greater than robot radius away from frontier and in free space
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+
+        }
+    }
+
+    // Check if frontier point is a valid goal
+    
+
+    // Plan path
+    
     
     return emptyPath;
 }

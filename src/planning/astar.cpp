@@ -184,7 +184,7 @@ robot_path_t search_for_path(pose_xyt_t start,
             
             // Check if cell is safe
             //if (distances(new_node.x, new_node.y) <= std::ceil(params.minDistanceToObstacle)) continue;
-            if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle) continue;
+            if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle*2) continue;
             //if (distances(new_node.x, new_node.y) == 0) continue;
             //std::cout << "distance: " << distances(new_node.x, new_node.y) << " , min: " << params.minDistanceToObstacle << std::endl;
 
@@ -290,7 +290,7 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
 
     // Local Variables
     pose_xyt_t next; // position in world coordinates
-    //pose_xyt_t turn; // position in world coordinates
+    pose_xyt_t turn; // position in world coordinates
     Node n;             // node
     int path_size = 0;
     robot_path_t temp_path;
@@ -375,10 +375,10 @@ void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, co
             j++; // iterate
 
             // add turn
-            //turn = path->path[j - 1];
-            //turn.theta = theta;
-            //path->path.push_back(turn);
-            //j++;
+            turn = path->path[j - 1];
+            turn.theta = theta;
+            path->path.push_back(turn);
+            j++;
         }
     }
 
