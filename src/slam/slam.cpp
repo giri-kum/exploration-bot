@@ -196,9 +196,22 @@ void OccupancyGridSLAM::runSLAMIteration(void)
     // Sanity check the laser data to see if rplidar_driver has lost sync
     if(currentScan_.num_ranges > 100)//250)
     {
+
+        if(filter_.findNumberSpots > 7) {
+
+                    previousPose_ = currentPose_;
+                    currentPose_  = filter_.updateFilterLocal(currentOdometry_, currentScan_, map_);//, v_, omega_, utime_); //remove last 3 args for odo
+                    auto particles = filter_.particles();
+                    lcm_.publish(SLAM_POSE_CHANNEL, &currentPose_); 
+                    lcm_.publish(SLAM_PARTICLES_CHANNEL, &particles);
+
+        } else if (filter_.findNumberSpots > 3){
+                    //make the robot drive?
+        } else {
         updateLocalization();
         //std::cout << "localization complete!" << std::endl;
         updateMap();
+    }
         //std::cout << "mapping complete!" << std::endl;
     }
     else 
@@ -247,6 +260,7 @@ void OccupancyGridSLAM::initializePosesIfNeeded(void)
         haveInitializedPoses_ = true;
         
         filter_.initializeFilterAtPose(previousPose_);
+        filter_.applyUniformAcrossGrid(map_);
     }
     
     assert(haveInitializedPoses_);

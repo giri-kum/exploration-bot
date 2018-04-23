@@ -72,6 +72,18 @@ public:
     * particles retrieves the posterior set of particles being used by the algorithm.
     */
     particles_t particles(void) const;
+
+
+    void applyUniformAcrossGrid(const OccupancyGrid&   map);
+
+    pose_xyt_t localizePoseEst(void);
+
+    int findNumberSpots(void);
+
+    pose_xyt_t updateFilterLocal(const pose_xyt_t&      odometry,
+                            const lidar_t& laser,
+                            const OccupancyGrid&   map);
+
     
 private:
     
@@ -92,7 +104,12 @@ private:
 
 
     std::vector<particle_t> Normalize(const std::vector<particle_t>& given_particles);
- 
+
+    void applyRandomMovement(const std::vector<particle_t>& posterior);
+
+    int numPoses;
+
+
 };
 
 #endif // SLAM_PARTICLE_FILTER_HPP

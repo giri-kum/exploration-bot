@@ -223,3 +223,140 @@ pose_xyt_t ParticleFilter::estimatePosteriorPose(const std::vector<particle_t>& 
     pose.utime = posterior[kNumParticles_-1].pose.utime;    
     return pose;
 }
+
+
+void ParticleFilter::applyUniformAcrossGrid(const OccupancyGrid&   map) {
+
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> xdistr(-map.widthInMeters()/2, map.widthInMeters()/2); // define the range
+    std::uniform_int_distribution<> ydistr(-map.heightInMeters()/2, map.heightInMeters()/2); // define the range
+    std::uniform_int_distribution<> thetadistr(-1*M_PI, M_PI); // define the range
+
+
+
+        std::vector<particle_t> randos = ParticleFilter::posterior_;
+        Point<float> mapOrigin = map.originInGlobalFrame();
+
+         for (int i = 0; i < kNumParticles_; i++) 
+        {
+            
+            randos[i].pose.x = mapOrigin.x + xdistr(eng);
+            randos[i].pose.y = mapOrigin.y + ydistr(eng);
+            randos[i].pose.y = thetadistr(eng);
+        }
+
+    ParticleFilter::posterior_ = randos;
+
+}
+
+void ParticleFilter::applyRandomMovement(const std::vector<particle_t>& posterior) {
+
+    std::vector<particle_t> randos = posterior;
+
+    double distFuzz = .1;
+    double thetaFuzz = .1;
+
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> xdistr(-distFuzz, distFuzz); // define the range
+    std::uniform_int_distribution<> thetadistr(-thetaFuzz, thetaFuzz); // define the range
+
+        for (int i = 0; i < kNumParticles_; i++) 
+        {
+            randos[i].pose.x = randos[i].pose.x + xdistr(eng);
+            randos[i].pose.y = randos[i].pose.y + xdistr(eng);
+            randos[i].pose.y = randos[i].pose.y + thetadistr(eng);
+        }
+
+}
+
+pose_xyt_t ParticleFilter::localizePoseEst(void) {
+
+    pose_xyt_t poseEst;
+    poseEst.x = 0;
+    poseEst.y = 0;
+    poseEst.theta = 0;
+
+    double minDifferentDist = .1;
+    double minDifferentTheta = .1;
+    std::vector<particle_t> randos = posterior;
+
+    std::vector<int> numPartsPerPose = {};
+    std::vector<pose_xyt_t> multiPoses = {};
+
+    //iterate through all particles
+    for (int i = 0; i < kNumParticles_; i++) {
+        pose_xyt_t tempPose = randos[i].pose;
+
+        //if first pose include it automatically
+        if (numPartsPerPose.empty()) {
+            numPartsPerPose.insert(1, numPartsPerPose.end());
+            multiPoses.insert(tempPose, multiPoses.end());
+
+        //if not first pose, then...
+        } else {
+            //for all poses in tracked pose vector
+            for (int j = 0; j < numPartsPerPose.size(); j++) {
+                pose_xyt_t currPose = multiPoses[j];
+
+                //if the current particle is in that pose add it to the average
+                if ((std::hypot(tempPose.x - currPose.x, tempPose.y - currPose.y) < minDifferentDist) & ((tempPose.theta - currPose.theta) < minDifferentTheta) ) {
+                    pose_xyt_t newPose = currPose;
+
+                    newPose.x = (currPose.x * numPartsPerPose[j] + tempPose.x) / numPartsPerPose[j] + 1;
+                    newPose.y = (currPose.y * numPartsPerPose[j] + tempPose.y) / numPartsPerPose[j] + 1;
+                    newPose.theta = (currPose.theta * numPartsPerPose[j] + tempPose.theta) / numPartsPerPose[j] + 1;
+
+                    multiPoses[j] = newPose;
+                    numPartsPerPose[j] = numPartsPerPose[j] + 1;
+
+                //otherwise put in a new pose
+                } else {
+                    multiPoses.insert(tempPose, multiPoses.end());
+                    numPartsPerPose.insert(1, numPartsPerPose.end());
+                }
+            }
+        }
+
+
+    }
+
+int num_tracked = 0;
+for (int j = 0; j < numPartsPerPose.size(); j++) {
+    if (numPartsPerPose[i] > num_tracked) {
+        num_tracked = numPartsPerPose[i];
+        poseEst = multiPoses[i];
+    }
+}
+
+ParticleFilter::numPoses = numPartsPerPose.size();
+return poseEst;
+}
+
+int ParticleFilter::findNumberSpots(void) {
+    pose_xyt_t  temp = ParticleFilter::localizePoseEst();
+    return ParticleFilter::numPoses;
+}
+
+pose_xyt_t ParticleFilter::updateFilterLocal(const pose_xyt_t&  odometry, const lidar_t& laser, const OccupancyGrid&   map) {
+
+        applyRandomMovement(posterior_);
+
+        auto prior = resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
+        auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
+        posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
+        posteriorPose_ = localizePoseEst(); // you compute the pose using max or mean of particles locaiton here
+
+    
+        posteriorPose_.utime = odometry.utime;
+    
+        return posteriorPose_;
+
+
+}
+
+
+
+
+
