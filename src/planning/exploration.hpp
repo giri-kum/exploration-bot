@@ -113,6 +113,7 @@ private:
     int frontier_has_been_explored_;
     int waiting_;
 
+    int goHome_;
 
 
     /////////////////////////// End student code ///////////////////////////////

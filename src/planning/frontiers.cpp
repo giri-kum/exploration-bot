@@ -128,7 +128,7 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
 
 
 
-    
+    /*
     // Find frontier with minimum distance to robot
     float min_dist = 100000;
     int min_ind = -1;
@@ -140,22 +140,34 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
             min_ind = i;
         }
     }
+    */
+
+
+    //int min_ind = -1;
 
     // Print mclosest midpoint
     //std::cout << "closest midpoint = " << midpoints[min_ind].x << ", " << midpoints[min_ind].y << std::endl;
     
-    tempFrontierVec = frontiers[min_ind].cells;
-    int tempFrontierSize = tempFrontierVec.size();
+    //tempFrontierVec = frontiers[min_ind].cells;
+    //int tempFrontierSize = tempFrontierVec.size();
+    int tempFrontierSize;
     pose_xyt_t goalPose;
     int foundPath = 0;
-    for (min_ind = 0; min_ind < frontier_size; min_ind++) {
+    for (int min_ind = 0; min_ind < frontier_size; min_ind++) {
 
         // Check around all points in the frontier
         //while (!foundPath) {
 
             //Point<float> goalPoint = find_free_neighbor(midpoints[min_ind], slope[min_ind], map);
 
-            for (int i = 0; i < tempFrontierSize; i++) {
+            // DEBUG
+            tempFrontierVec = frontiers[min_ind].cells;
+            int tempFrontierSize = tempFrontierVec.size();
+            int range = tempFrontierSize/4;
+
+            for (int i = tempFrontierSize/2 - range; i < tempFrontierSize/2 + range; i++) {
+            //for (int i = 0; i < tempFrontierSize; i++) {
+
                 const int kNumNeighbors = 4;
                 const float xDeltas[] = { -1*map.metersPerCell(), 1*map.metersPerCell(), 0, 0 };
                 const float yDeltas[] = { 0, 0, 1*map.metersPerCell(), -1*map.metersPerCell() };
@@ -198,6 +210,7 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
                 }
                 if (foundPath) break;
             }
+            if (foundPath) break;
         //}
     }
              
@@ -215,10 +228,12 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
         //}
     //}
 
-    if (path_to_frontier.path.size() == 1) {
-        path_to_frontier = planner.planPath(robotPose, robotPose);
+    if (path_to_frontier.path.size() <= 1) {
+        //path_to_frontier = planner.planPath(robotPose, robotPose);
+        path_to_frontier.path.clear();
         path_to_frontier.path.push_back(robotPose);
-        std::cout << "wait while looking for next goal\n";
+        path_to_frontier.path.push_back(robotPose);
+        //std::cout << "wait while looking for next goal\n";
     }
     //pose_xyt_t goalPose;
 

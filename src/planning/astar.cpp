@@ -285,7 +285,7 @@ float calc_h(Node ngoal, int x, int y, const ObstacleDistanceGrid& distances, co
     float d = w1 * sqrt(pow((ngoal.x - x), 2) + pow((ngoal.y - y), 2));
     
     // Add obstacle distance cost
-    float w2 = 0;
+    float w2 = 1.5;
     float od = 0;
     if (distances(x, y) <= params.maxDistanceWithCost) {
         od = w2 * pow(distances.cellsPerMeter() * (params.maxDistanceWithCost - distances(x, y)), params.distanceCostExponent);

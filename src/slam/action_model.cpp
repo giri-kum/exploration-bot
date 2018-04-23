@@ -119,7 +119,8 @@ particle_t ActionModel::applyAction(const particle_t& sample)
 	new_particle.pose.x = sample.pose.x + del_bar_trans*cos(sample.pose.theta + del_bar_rot1);
 	new_particle.pose.y = sample.pose.y + del_bar_trans*sin(sample.pose.theta + del_bar_rot1);
 	//std::cout << "thetas " << del_bar_rot1 - del_rot1 << " " << del_bar_rot2 - del_rot2 << std::endl;
-	new_particle.pose.theta = sample.pose.theta + del_bar_rot1 + del_bar_rot2; // Don't forget to wrap the angle
+	//new_particle.pose.theta = sample.pose.theta + del_bar_rot1 + del_bar_rot2; // Don't forget to wrap the angle
+	new_particle.pose.theta = wrap_to_pi(sample.pose.theta + del_bar_rot1 + del_bar_rot2);
 
 	new_particle.pose.utime = time_stamp; // what time stamp should be given here
 	}
