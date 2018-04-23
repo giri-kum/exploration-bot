@@ -213,6 +213,9 @@ void Exploration::executeStateMachine(void)
 
 int8_t Exploration::executeInitializing(void)
 {
+    frontier_has_been_explored_ = true;
+    waiting_ = false;
+
     /////////////////////////   Create the status message    //////////////////////////
     // Immediately transition to exploring once the first bit of data has arrived
     exploration_status_t status;
@@ -246,31 +249,62 @@ int8_t Exploration::executeExploringMap(bool initialize)
 
     // Local Variables
     int path_is_not_safe = false;
-    int frontier_has_been_explored = true;
+
+    frontiers_ = find_map_frontiers(currentMap_, currentPose_);
     
     // Check if there is currently a path
-    if (currentPath_.path.size() > 0) {
+    if (currentPath_.path.size() > 1 && !waiting_) {
 
         // Check if last frontier has been explored or if the current path is not safe
         path_is_not_safe = !planner_.isPathSafe(currentPath_);
+        if (path_is_not_safe) std::cout << "path is no longer safe\n";
 
         // Check if frontier has been explored
-        frontier_has_been_explored = false;
-        if (currentMap_.logOdds(currentTargetCell_.x, currentTargetCell_.y) != 0) frontier_has_been_explored = true;
+        //frontier_has_been_explored_ = false;
+        // ***fix target cell
+        //if (currentMap_.logOdds(currentTargetCell_.x, currentTargetCell_.y) > 50) frontier_has_been_explored_ = true;
+        float posTolx = 0.01;
+        float posToly = 0.01;
+        //if (fabs(currentPose_.x - currentTarget_.x) < posTolx && fabs(currentPose_.y - currentTarget_.y) < posToly) frontier_has_been_explored_ = true;
 
     }
 
-    if (path_is_not_safe || frontier_has_been_explored) {
+    if (waiting_) {
+        waiting_ = false;
+
+        std::cout << "waiting\n";
+
         // Find new frontiers
-        frontiers_ = find_map_frontiers(currentMap_, currentPose_);
+        //frontiers_ = find_map_frontiers(currentMap_, currentPose_);
 
         // If there are still frontiers to explore, plan path
         if (!frontiers_.empty()) {
+            //std::cout << "choosing frontier\n";
+            planner_.setMap(currentMap_);
             currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
             currentTarget_ = currentPath_.path[currentPath_.path.size()];
             currentTargetCell_ = Point<int>(static_cast<int>((currentTarget_.x - currentMap_.originInGlobalFrame().x) * currentMap_.cellsPerMeter()),
                       static_cast<int>((currentTarget_.y - currentMap_.originInGlobalFrame().y) * currentMap_.cellsPerMeter()));
         }
+        frontier_has_been_explored_ = false;
+        path_is_not_safe = false;
+
+        //if (frontiers_.empty()) {
+
+        //}
+    }
+
+    if ((path_is_not_safe || frontier_has_been_explored_) && !waiting_) {
+        std::cout << "about to wait\n";
+
+        //currentPath_ = planner_.planPath(currentPose_, currentPose_);
+        robot_path_t tempPath;
+        tempPath.path.push_back(currentPose_);
+        tempPath.path.push_back(currentPose_);
+        currentPath_ = tempPath;
+        //currentPath_.path.push_back(currentPose_);
+        waiting_ = true;
+        
     }
 
     /////////////////////////////// End student code ///////////////////////////////
@@ -331,6 +365,8 @@ int8_t Exploration::executeReturningHome(bool initialize)
     *       (2) currentPath_.path_length > 1  :  currently following a path to the home pose
     */
     
+    planner_.setMap(currentMap_);
+    currentPath_ = planner_.planPath(currentPose_, homePose_);
 
     //currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
 

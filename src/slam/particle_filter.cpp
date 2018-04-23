@@ -16,6 +16,7 @@ ParticleFilter::ParticleFilter(int numParticles)
 
 void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
 {
+    std::cout<<"particles initialized \n";
    initializeUniformPosteriorDistribution(pose); 
 //   initializeGaussianPosteriorDistribution(pose); 
 }
@@ -188,9 +189,9 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
  {
     std::vector<particle_t> result = given_particles;
     float sum = 0;
-    for (int i = 0; i < result.size(); i++) 
+    for (unsigned int i = 0; i < result.size(); i++) 
         sum = sum + result[i].weight;
-    for (int i = 0; i < result.size(); i++) 
+    for (unsigned int i = 0; i < result.size(); i++) 
         {
             if(sum == 0) result[i].weight = 0;
             else         result[i].weight = result[i].weight/sum;

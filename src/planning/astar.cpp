@@ -32,10 +32,12 @@ robot_path_t search_for_path(pose_xyt_t start,
     //}
 
     // Get start cells
-    int startCellx = static_cast<int>((start.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter());
-    int startCelly = static_cast<int>((start.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
-    int goalCellx = static_cast<int>((goal.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter());
-    int goalCelly = static_cast<int>((goal.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
+    //int startCellx = static_cast<int>((start.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter());
+    //int startCelly = static_cast<int>((start.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
+    //int goalCellx = static_cast<int>((goal.x - distances.originInGlobalFrame().x) * distances.cellsPerMeter());
+    //int goalCelly = static_cast<int>((goal.y - distances.originInGlobalFrame().y) * distances.cellsPerMeter());
+    Point<int> startCell = global_to_cell(start.x, start.y, distances);
+    Point<int> goalCell = global_to_cell(goal.x, goal.y, distances);
 
     // Heuristic variables
     float check_h;
@@ -47,8 +49,10 @@ robot_path_t search_for_path(pose_xyt_t start,
     path.path.push_back(start);     // add first pose
 
     // Initialize start and end nodes
-    Node nstart(startCellx, startCelly, 0, -1, 1);
-    Node ngoal(goalCellx, goalCelly, 0, -1, 0);
+    //Node nstart(startCellx, startCelly, 0, -1, 1);
+    //Node ngoal(goalCellx, goalCelly, 0, -1, 0);
+    Node nstart(startCell.x, startCell.y, 0, -1, 1);
+    Node ngoal(goalCell.x, goalCell.y, 0, -1, 0);
 
     //std::cout << "start: (" << nstart.x << ", " << nstart.y << ")\n";
     //std::cout << "goal: (" << ngoal.x << ", " << ngoal.y << ")\n";
@@ -76,7 +80,7 @@ robot_path_t search_for_path(pose_xyt_t start,
     //openset.push_back(nstart);  // add nstart to the openset
 
     // add nstart to the openset
-    id = calc_id(startCellx, startCelly, width);
+    id = calc_id(startCell.x, startCell.y, width);
     openset[id] = nstart;
     open_size++;
 
@@ -100,13 +104,14 @@ robot_path_t search_for_path(pose_xyt_t start,
         }
         else {
             //std::cout << "openset is empty!\n";
+            //std::cout << "path: " << path.path[0].x << ", " << path.path[0].y << std::endl;
             return path;
             //break;
         }
         n_ind = i; // reset n_ind        
 
         // Find item with lowest cost
-        for (; i < tot_nodes; i++) {
+        for (i += 1; i < tot_nodes; i++) {
             // if node is in the open set
             if (openset[i].inset) {
                 // Calculate heuristics
@@ -184,7 +189,11 @@ robot_path_t search_for_path(pose_xyt_t start,
             
             // Check if cell is safe
             //if (distances(new_node.x, new_node.y) <= std::ceil(params.minDistanceToObstacle)) continue;
+
             if (distances(new_node.x, new_node.y) < params.minDistanceToObstacle*1.5) continue;
+
+
+
             //if (distances(new_node.x, new_node.y) == 0) continue;
             //std::cout << "distance: " << distances(new_node.x, new_node.y) << " , min: " << params.minDistanceToObstacle << std::endl;
 
@@ -292,7 +301,7 @@ int calc_id(int x, int y, int width) {
 
 void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, const ObstacleDistanceGrid& distances) {
 
-    //std::cout << "calculating final path!" << std::endl;
+    std::cout << "calculating final path!" << std::endl;
 
     // Local Variables
     pose_xyt_t next; // position in world coordinates

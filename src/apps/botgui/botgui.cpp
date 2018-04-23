@@ -129,7 +129,13 @@ int BotGui::onMouseEvent(vx_layer_t* layer,
         planner.setMap(map_);
         robot_path_t plannedPath = planner.planPath(slamPose_, target);
         distances_ = planner.obstacleDistances();
-        lcmInstance_->publish(CONTROLLER_PATH_CHANNEL, &plannedPath);
+
+        // DEBUG
+        if (plannedPath.path.size() > 1) {
+            std::cout << "sending to controller\n";
+            lcmInstance_->publish(CONTROLLER_PATH_CHANNEL, &plannedPath);
+            std::cout << "sent to controller\n";
+        }
         
         std::cout << "completed in " << ((utime_now() - startTime) / 1000) << "ms\n";
     }
@@ -138,6 +144,8 @@ int BotGui::onMouseEvent(vx_layer_t* layer,
         std::lock_guard<std::mutex> autoLock(vxLock_);
         mouseWorldCoord_ = worldPoint;
         mouseGridCoord_ = global_position_to_grid_cell(worldPoint, map_);
+
+        //std::cout << "done with botgui?\n";
     
     return 0;
 }

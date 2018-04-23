@@ -7,6 +7,7 @@
 
 int main(int argc, char** argv)
 {
+    std::cout<<"SLAM started \n";
     const char* kNumParticlesArg = "num-particles";
     const char* kHitOddsArg = "hit-odds";
     const char* kMissOddsArg = "miss-odds";
@@ -50,6 +51,7 @@ int main(int argc, char** argv)
                            localizationMap);
     
     std::thread slamThread([&slam]() {
+        
         slam.runSLAM();
     });
     

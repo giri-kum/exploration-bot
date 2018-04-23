@@ -110,6 +110,9 @@ private:
     int64_t most_recent_path_time;
 //    int8_t path_redundancy_count;
 
+    int frontier_has_been_explored_;
+    int waiting_;
+
 
 
     /////////////////////////// End student code ///////////////////////////////

@@ -67,15 +67,12 @@ void OccupancyGridSLAM::runSLAM(void)
 {
     while(true)
     {
+
         // If new data has arrived
         if(isReadyToUpdate())
         {
             // Then run an iteration of our SLAM algorithm
             runSLAMIteration();
-
-            //static int i = 0;
-            //std::cout << "iteration " << i << std::endl;
-            //i++;
         }
         // Otherwise, do a quick spin while waiting for data rather than using more complicated condition variable.
         else
@@ -171,7 +168,7 @@ bool OccupancyGridSLAM::isReadyToUpdate(void)
     {
         // Find if there's a scan that there is odometry data for
         const lidar_t& nextScan = incomingScans_.front();
-        
+            
         // Ensure that there's a pose that exists at or after the final laser measurement to be sure that valid
         // interpolation of robot motion during the scan can be performed.
         
@@ -179,7 +176,7 @@ bool OccupancyGridSLAM::isReadyToUpdate(void)
         bool haveNewOdom = (mode_ != mapping_only) && (odometryPoses_.containsPoseAtTime(nextScan.times.back()));
         // Otherwise, only see if a new pose has arrived
         bool haveNewPose = (mode_ == mapping_only) && (groundTruthPoses_.containsPoseAtTime(nextScan.times.back()));        
-
+        
         haveData = haveNewOdom || haveNewPose;
     }
 
