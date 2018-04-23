@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv)
 {std::cout << "here" <<std::endl;
-    int numTimes = 1;
+    int numTimes = 4;
     
     if(argc > 1)
     {
@@ -16,13 +16,15 @@ int main(int argc, char** argv)
     }
     
     std::cout << "Commanding robot to drive around 1m square " << numTimes << " times.\n";
+
+    float dist = 1.0;
     
     robot_path_t path;
     path.path.resize(numTimes * 4);
     
     pose_xyt_t nextPose;
     
-    nextPose.x = 1.0f;
+    nextPose.x = dist;
     nextPose.y = 0.0f;
     nextPose.theta = M_PI_2;
     for(int n = 0; n < numTimes; ++n)
@@ -30,8 +32,8 @@ int main(int argc, char** argv)
         path.path[4*n] = nextPose;
     }
     
-    nextPose.x = 1.0f;
-    nextPose.y = 1.0f;
+    nextPose.x = dist;
+    nextPose.y = dist;
     nextPose.theta = 0;
     for(int n = 0; n < numTimes; ++n)
     {
@@ -39,7 +41,7 @@ int main(int argc, char** argv)
     }
     
     nextPose.x = 0.0f;
-    nextPose.y = 1.0f;
+    nextPose.y = dist;
     nextPose.theta = -M_PI;
     for(int n = 0; n < numTimes; ++n)
     {
@@ -48,7 +50,7 @@ int main(int argc, char** argv)
     
     nextPose.x = 0.0f;
     nextPose.y = 0.0f;
-    nextPose.theta = -M_PI_2;
+    nextPose.theta = 0.0f;
     for(int n = 0; n < numTimes; ++n)
     {
         path.path[4*n + 3] = nextPose;
@@ -60,7 +62,7 @@ int main(int argc, char** argv)
     
     nextPose.x = 0.0f;
     nextPose.y = 0.0f;
-    nextPose.theta = 0.0f;
+    nextPose.theta = M_PI_2;
     path.path.insert(path.path.begin(), nextPose);
     
     path.path_length = path.path.size();

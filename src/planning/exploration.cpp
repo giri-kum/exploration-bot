@@ -256,6 +256,7 @@ int8_t Exploration::executeExploringMap(bool initialize)
     if (currentPath_.path.size() > 1 && !waiting_) {
 
         // Check if last frontier has been explored or if the current path is not safe
+        planner_.setMap(currentMap_); // update current map
         path_is_not_safe = !planner_.isPathSafe(currentPath_);
         if (path_is_not_safe) std::cout << "path is no longer safe\n";
 
@@ -263,9 +264,9 @@ int8_t Exploration::executeExploringMap(bool initialize)
         //frontier_has_been_explored_ = false;
         // ***fix target cell
         //if (currentMap_.logOdds(currentTargetCell_.x, currentTargetCell_.y) > 50) frontier_has_been_explored_ = true;
-        float posTolx = 0.01;
-        float posToly = 0.01;
-        //if (fabs(currentPose_.x - currentTarget_.x) < posTolx && fabs(currentPose_.y - currentTarget_.y) < posToly) frontier_has_been_explored_ = true;
+        float posTolx = 0.1;
+        float posToly = 0.1;
+        if (fabs(currentPose_.x - currentTarget_.x) < posTolx && fabs(currentPose_.y - currentTarget_.y) < posToly) frontier_has_been_explored_ = true;
 
     }
 
@@ -283,8 +284,8 @@ int8_t Exploration::executeExploringMap(bool initialize)
             planner_.setMap(currentMap_);
             currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
             currentTarget_ = currentPath_.path[currentPath_.path.size()];
-            currentTargetCell_ = Point<int>(static_cast<int>((currentTarget_.x - currentMap_.originInGlobalFrame().x) * currentMap_.cellsPerMeter()),
-                      static_cast<int>((currentTarget_.y - currentMap_.originInGlobalFrame().y) * currentMap_.cellsPerMeter()));
+            //currentTargetCell_ = Point<int>(static_cast<int>((currentTarget_.x - currentMap_.originInGlobalFrame().x) * currentMap_.cellsPerMeter()),
+            //          static_cast<int>((currentTarget_.y - currentMap_.originInGlobalFrame().y) * currentMap_.cellsPerMeter()));
         }
         frontier_has_been_explored_ = false;
         path_is_not_safe = false;
