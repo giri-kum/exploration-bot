@@ -30,6 +30,19 @@
 #define PORT_COMMAND        1510
 #define PORT_DATA           1511
 
+
+/**
+* rigid_body_marker_t defines the data for a rigid body's markers
+*/
+struct rigid_body_marker_t
+{
+    int id;
+    float size;
+    float x;
+    float y;
+    float z;
+};
+
 /**
 * optitrack_message_t defines the data for a rigid body transmitted by the Optitrack server. A rigid body has a unique
 * id, a 3D position, and a quaternion defining the orientation.
@@ -44,6 +57,8 @@ struct optitrack_message_t
     float qy;   ///< qy of quaternion
     float qz;   ///< qz of quaternion
     float qw;   ///< qw of quaternion
+    int nRigidMarkers; ///< Number of markers in rigid body
+    rigid_body_marker_t *markers;
 };
 
 /**
@@ -78,13 +93,13 @@ SOCKET create_optitrack_data_socket(const std::string& interfaceIp, unsigned sho
 std::vector<optitrack_message_t> parse_optitrack_packet_into_messages(const char* packet, int size);
 
 /**
-* quaternion_to_yaw computes the yaw encoded by the quaternion returned by optitrack. The quaternion assumes XYZ 
-* ordering and a Y-up configuration.
+* 
 * 
 * \param    msg         Optitrack message containing the rigid body quaternion
-* \return   The yaw of the object being tracked.
+* \param    roll        return roll
+* \param    pitch       return pitch
+* \param    yaw         return yaw
 */
-double quaternion_to_yaw(const optitrack_message_t& msg);
-
+void toEulerAngle(const optitrack_message_t& msg, double& roll, double& pitch, double& yaw);
 
 #endif // OPTITRACK_OPTITRACK_HPP

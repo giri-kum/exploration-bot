@@ -301,7 +301,7 @@ int calc_id(int x, int y, int width) {
 
 void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, const ObstacleDistanceGrid& distances) {
 
-    std::cout << "calculating final path!" << std::endl;
+    //std::cout << "calculating final path!" << std::endl;
 
     // Local Variables
     pose_xyt_t next; // position in world coordinates

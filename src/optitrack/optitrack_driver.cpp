@@ -1,8 +1,10 @@
 #include <optitrack/optitrack.hpp>
 #include <optitrack/optitrack_channels.h>
-#include <common/getopt.h>
-#include <common/timestamp.h>
+#include <optitrack/common/getopt.h>
+#include <optitrack/common/timestamp.h>
+#include <lcmtypes/balancebot_msg_t.hpp>
 #include <lcmtypes/pose_xyt_t.hpp>
+#include <lcmtypes/balancebot_gate_t.hpp>
 #include <lcm/lcm-cpp.hpp>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -13,12 +15,16 @@
 int main(int argc, char** argv)
 {
     const char* kInterfaceArg = "interface";
-    const char* kRigidBodyArg = "rigid-body";
+    const char* kBBRigidBodyArg = "balancebot";
+    const char* kNumGatesArg = "number of gates";
     
     getopt_t* gopt = getopt_create();
     getopt_add_bool(gopt, 'h', "help", 0, "Display this help message.\n");
-    getopt_add_string(gopt, 'i', kInterfaceArg, "", "Local network interface to use for connecting to Optitrack multicast network");
-    getopt_add_int(gopt, 'r', kRigidBodyArg, "0", "Id of Optitrack rigid body to publish pose for.");
+    getopt_add_string(gopt, 'i', kInterfaceArg, "192.168.3.0", "Local network interface used when connecting to the Optitrack network. (Ex. inet as shown by ifconfig on the current machine.)");
+    getopt_add_int(gopt, 'r', kBBRigidBodyArg, "5", "Id of Balancebot rigid body to publish pose for.");
+    getopt_add_int(gopt, 'n', kNumGatesArg, "4", "Number of Gates (IDs 1-N)");
+
+    
     
     if (!getopt_parse(gopt, argc, argv, 1) || getopt_get_bool(gopt, "help")) {
         printf("Usage: %s [options]", argv[0]);
@@ -27,8 +33,12 @@ int main(int argc, char** argv)
     }
     
     std::string interface = getopt_get_string(gopt, kInterfaceArg);
-    int rigidBodyId = getopt_get_int(gopt, kRigidBodyArg);
-        
+    int BBrigidBodyId = getopt_get_int(gopt, kBBRigidBodyArg);
+    int NumGates = getopt_get_int(gopt, kNumGatesArg);
+
+
+
+    
     // If there's no interface specified, then we'll need to guess
     if (interface.length() == 0)
     {
@@ -58,35 +68,75 @@ int main(int argc, char** argv)
     
     lcm::LCM lcmInstance;
     // MAIN THREAD LOOP
+
+    printf("\nOptitrack Driver Running...\n");
     while (1) {
+        balancebot_msg_t BBmsg;
+        BBmsg.num_gates = NumGates;
         // Block until we receive a datagram from the network
         recvfrom(dataSocket, packet, sizeof(packet), 0, (sockaddr*)&incomingAddress, &addrLen);
         incomingMessages = parse_optitrack_packet_into_messages(packet, sizeof(packet));
- 
         for(auto& msg : incomingMessages) {
-            // Skip the message if it isn't for our particular rigid body
-            if(msg.id != rigidBodyId) {
-                continue;
+            if (msg.id <= NumGates)
+            {
+                int pair = 0;
+                float m[3][2];
+                balancebot_gate_t gate;
+                int i;
+                for(i=0;i<3;i++){
+                    m[i][0] = msg.markers[i].x;
+                    m[i][1] = msg.markers[i].z;
+                    //printf("Marker %d: (%f, %f)\n",i,m[i][0],m[i][1]);
+                }
+                for(i=0; i<2;i++){
+                    float xd = m[i][0]-m[i+1][0];
+                    float yd = m[i][1]-m[i+1][1];
+                    float d = sqrt(xd*xd+yd*yd);
+                    //printf("Dist (%d,%d) = %f\n",i,i+1,d);
+                    if( d < 0.2){
+                        pair = i+1;
+                        break;
+                    }
+                }
+
+                if(pair == 1){ // left = (m0, m1)
+                    gate.left_post[0] = (m[0][0]+m[1][0])/2;
+                    gate.left_post[1] = (m[0][1]+m[1][1])/2;
+                    gate.right_post[0] = m[2][0];
+                    gate.right_post[1] = m[2][1];
+                }
+                else if(pair == 2){ // left = (m1, m2)
+                    gate.left_post[0] = (m[1][0]+m[2][0])/2;
+                    gate.left_post[1] = (m[1][1]+m[2][1])/2;
+                    gate.right_post[0] = m[0][0];
+                    gate.right_post[1] = m[0][1];
+                }
+                
+                else{ // left = (m0, m2)
+                    gate.left_post[0] = (m[0][0]+m[2][0])/2;
+                    gate.left_post[1] = (m[0][1]+m[2][1])/2;
+                    gate.right_post[0] = m[1][0];
+                    gate.right_post[1] = m[1][1];
+                }
+                //printf("ID:%d, left=%d\n",msg.id,pair);
+                BBmsg.gates.push_back(gate); 
             }
 
-            // Converting from Optitrack with z forward, x left, y up to Mbot with x forward y left, z up gives the
-            // following:
-            //  opti.z -> mbot.x
-            //  opti.x -> mbot.y
-            //  opti.yaw -> mbot.theta
-            pose_xyt_t truePose;
-            truePose.utime = utime_now();
-            truePose.x = msg.x;
-            truePose.y = msg.z;
-            double roll;
-            double pitch;
-            double yaw;
-            toEulerAngle(msg, roll, pitch, yaw);
-            truePose.theta = yaw;
-            
-            lcmInstance.publish(TRUE_POSE_CHANNEL, &truePose);
-            std::cout << "OptiPose:" << truePose.x << ',' << truePose.y << ',' << truePose.theta << '\n';
+            else if(msg.id == BBrigidBodyId) {
+                pose_xyt_t Pose;
+                Pose.utime = utime_now();
+                Pose.x = msg.x;
+                Pose.y = -msg.z; //optitrack z is world -y
+                double roll;
+                double pitch;
+                double yaw;
+                toEulerAngle(msg, roll, pitch, yaw);
+                Pose.theta = yaw;
+                BBmsg.pose = Pose;
+            }            
         }
+        BBmsg.utime = utime_now();
+        lcmInstance.publish(OPTITRACK_CHANNEL, &BBmsg);
     }
     
     // Cleanup options now that we've parsed everything we need
