@@ -341,22 +341,22 @@ std::vector<optitrack_message_t> parse_optitrack_packet_into_messages(const char
 
 void toEulerAngle(const optitrack_message_t& msg, double& roll, double& pitch, double& yaw)
 {   
+    // from wikipedia quaternion entry
+    double ysqr = msg.qy * msg.qy;
 
-    double zsqr = msg.qz * msg.qz;
-
-    // roll (optitrack x-axis rotation)
-    double t0 = +2.0 * (msg.qw * msg.qx + msg.qz * msg.qy);
-    double t1 = +1.0 - 2.0 * (msg.qx * msg.qx + zsqr);
+    // roll (x-axis rotation)
+    double t0 = +2.0 * (msg.qw * msg.qx + msg.qy * msg.qz);
+    double t1 = +1.0 - 2.0 * (msg.qx * msg.qx + ysqr);
     roll = std::atan2(t0, t1);
 
-    // pitch (optitrack z-axis rotation)
-    double t2 = +2.0 * (msg.qw * msg.qz - msg.qy * msg.qx);
+    // pitch (y-axis rotation)
+    double t2 = +2.0 * (msg.qw * msg.qy - msg.qz * msg.qx);
     t2 = t2 > 1.0 ? 1.0 : t2;
     t2 = t2 < -1.0 ? -1.0 : t2;
     pitch = std::asin(t2);
 
-    // yaw (optitrack y-axis rotation)
-    double t3 = +2.0 * (msg.qw * msg.qy + msg.qx * msg.qz);
-    double t4 = +1.0 - 2.0 * (zsqr + msg.qy * msg.qy);  
+    // yaw (z-axis rotation)
+    double t3 = +2.0 * (msg.qw * msg.qz + msg.qx * msg.qy);
+    double t4 = +1.0 - 2.0 * (ysqr + msg.qz * msg.qz);  
     yaw = std::atan2(t3, t4);
 }
