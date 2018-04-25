@@ -36,8 +36,6 @@ void ObstacleDistanceGrid::setDistances(const OccupancyGrid& map)
             if(map(i, j) > 0) distance(i, j) = 0;
             else {
                 min_dist = 10000000; // initialize to a large number
-                
-                // USE CELLS PER METER AS THE UPPER BOUND TO OPTIMIZE -JS
                 for (int dp = 1; dp < cellsPerMeter_; dp++) {
                     for (k = i - dp; k <= i + dp; k++) {
                         for (m = j - dp; m <= j + dp; m++) {
@@ -56,34 +54,10 @@ void ObstacleDistanceGrid::setDistances(const OccupancyGrid& map)
                         break; // if found an obstacle
                     }
                 }
-                //std::cout << "break!" << std::endl;
-                /*
-                // Check every other cell
-                for(k = 0; k < width_; k++) {
-                    for (m = 0; m < height_; m++) {
-                        // If the cell is an obstacle
-                        if (map(k,m) > 0) {
-                            // Find the distance between cells
-                            x_tmp = (i - k)*metersPerCell_;
-                            y_tmp = (j - m)*metersPerCell_;
-                            temp_dist = sqrt(pow(x_tmp, 2) + pow(y_tmp, 2));
-                            if (temp_dist < min_dist) min_dist = temp_dist;
-                        }
-                    }
-                }
-                */
                 distance(i, j) = min_dist;
             }  
         }
     }
-
-    // DEBUGGING
-    //for(i = 0; i < height_; i++) {
-    //    for (j = 0; j < width_; j++) {
-    //        std::cout << distance(i,j) << " ";
-    //    }
-    //    std::cout << std::endl;
-    //}
 }
 
 

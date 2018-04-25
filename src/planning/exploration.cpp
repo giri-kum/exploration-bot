@@ -252,80 +252,24 @@ int8_t Exploration::executeExploringMap(bool initialize)
     // Local Variables
     int path_is_not_safe = false;
 
+    // Find frontiers
     frontiers_ = find_map_frontiers(currentMap_, currentPose_);
-    
-    // Check if there is currently a path
-    //if (currentPath_.path.size() > 1 && !waiting_) {
-    /*if (currentPath_.path.size() > 1) {
 
-        // Check if last frontier has been explored or if the current path is not safe
-        planner_.setMap(currentMap_); // update current map
-        path_is_not_safe = !planner_.isPathSafe(currentPath_);
-        if (path_is_not_safe) std::cout << "path is no longer safe\n";
-
-        // Check if frontier has been explored
-        //frontier_has_been_explored_ = false;
-        // ***fix target cell
-        //if (currentMap_.logOdds(currentTargetCell_.x, currentTargetCell_.y) > 50) frontier_has_been_explored_ = true;
-        float posTolx = 0.1;
-        float posToly = 0.1;
-        //if (fabs(currentPose_.x - currentTarget_.x) < posTolx && fabs(currentPose_.y - currentTarget_.y) < posToly) frontier_has_been_explored_ = true;
-        //if (frontiers_.size() != prev_frontier_size) {
-        //    std::cout << "frontier has been explored\n";
-        //    frontier_has_been_explored_ = true;
-        //}
-    }*/
-
-    //if (waiting_) {
-    //waiting_ = false;
-
-    //std::cout << "waiting\n";
-
-    // Find new frontiers
-    //frontiers_ = find_map_frontiers(currentMap_, currentPose_);
-
+    // Check if path is safe
     planner_.setMap(currentMap_); // update current map
     path_is_not_safe = !planner_.isPathSafe(currentPath_);
 
     // If there are still frontiers to explore, plan path
     if (path_is_not_safe || (!frontiers_.empty() && frontiers_.size() != prev_frontier_size)) {
-        //std::cout << "choosing frontier\n";
-        //planner_.setMap(currentMap_);
         currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
         currentTarget_ = currentPath_.path[currentPath_.path.size()];
-        //currentTargetCell_ = Point<int>(static_cast<int>((currentTarget_.x - currentMap_.originInGlobalFrame().x) * currentMap_.cellsPerMeter()),
-        //          static_cast<int>((currentTarget_.y - currentMap_.originInGlobalFrame().y) * currentMap_.cellsPerMeter()));
     }
-    //frontier_has_been_explored_ = false;
-    //path_is_not_safe = false;
 
-    //if (currentPath_.path.size() == 1) {
-    //    std::cout << "going home after waiting\n";
-    //    goHome_ = true;
-    //    currentMap_.saveToFile("exploredMap.map");
-    //}
     if (frontiers_.empty()) {
-        goHome_ = true; //added
-        currentMap_.saveToFile("exploredMap.map"); // added
+        goHome_ = true; 
+        currentMap_.saveToFile("exploredMap.map");
     }
-    //}
 
-/*
-    if (!goHome_) {
-        if ((path_is_not_safe || frontier_has_been_explored_) && !waiting_) {
-            std::cout << "about to wait\n";
-
-            //currentPath_ = planner_.planPath(currentPose_, currentPose_);
-            robot_path_t tempPath;
-            tempPath.path.push_back(currentPose_);
-            tempPath.path.push_back(currentPose_);
-            currentPath_ = tempPath;
-            //currentPath_.path.push_back(currentPose_);
-            waiting_ = true;
-            
-        }
-    }
-*/
     prev_frontier_size = frontiers_.size();
 
     /////////////////////////////// End student code ///////////////////////////////
@@ -339,8 +283,6 @@ int8_t Exploration::executeExploringMap(bool initialize)
     // If no frontiers remain, then exploration is complete
     if(frontiers_.empty())
     {
-
-        std::cout << "trying to go home\n";
         status.status = exploration_status_t::STATUS_COMPLETE;
         planner_.setMap(currentMap_);
         do {
@@ -353,11 +295,6 @@ int8_t Exploration::executeExploringMap(bool initialize)
     {
         status.status = exploration_status_t::STATUS_IN_PROGRESS;
     }
-    // Otherwise, there are frontiers, but no valid path exists, so exploration has failed
-    //else
-    //{
-    //    status.status = exploration_status_t::STATUS_FAILED;
-   // }
 
     if (goHome_) status.state = exploration_status_t::STATUS_COMPLETE;
     
@@ -405,8 +342,6 @@ int8_t Exploration::executeReturningHome(bool initialize)
     status.utime = utime_now();
     status.team_number = teamNumber_;
     status.state = exploration_status_t::STATE_RETURNING_HOME;
-
-    std::cout << "returning home!\n";
     
     double distToHome = distance_between_points(Point<float>(homePose_.x, homePose_.y), 
                                                 Point<float>(currentPose_.x, currentPose_.y));
@@ -414,8 +349,6 @@ int8_t Exploration::executeReturningHome(bool initialize)
     if(distToHome <= kReachedPositionThreshold)
     {
         status.status = exploration_status_t::STATUS_COMPLETE;
-        currentMap_.saveToFile("exploredMap.map");
-
     }
     // Otherwise, if there's a path, then keep following it
     else if(currentPath_.path.size() > 1)

@@ -51,15 +51,9 @@ robot_path_t MotionPlanner::planPath(const pose_xyt_t& start, const pose_xyt_t& 
 bool MotionPlanner::isValidGoal(const pose_xyt_t& goal) const
 {
     float dx = goal.x - prev_goal.x, dy = goal.y - prev_goal.y;
-    //float distanceFromPrev = std::sqrt(dx * dx + dy * dy); // REMOVED TEMPORARY -JS
-
-    //if there's more than 1 frontier, don't go to a target that is within a robot diameter of the current pose
-    //if(num_frontiers != 1 && distanceFromPrev < 2 * searchParams_.minDistanceToObstacle) return false;
 
     //auto goalCell = global_position_to_grid_cell(Point<double>(goal.x, goal.y), distances_);
     auto goalCell = global_position_to_grid_cell(Point<float>(goal.x, goal.y), distances_);
-
-    //std::cout << "goal cell: (" << goalCell.x << ", " << goalCell.y << ") " << "robot radius: " << params_.robotRadius << std::endl;
 
     // A valid goal is in the grid
     if(distances_.isCellInGrid(goalCell.x, goalCell.y))
@@ -92,9 +86,7 @@ bool MotionPlanner::isPathSafe(const robot_path_t& path) const
 
 void MotionPlanner::setMap(const OccupancyGrid& map)
 {
-    //std::cout << "setting distances\n";
     distances_.setDistances(map);
-    //std::cout << "distances are set\n";
 }
 
 

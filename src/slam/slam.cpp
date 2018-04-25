@@ -194,9 +194,7 @@ void OccupancyGridSLAM::runSLAMIteration(void)
     if(currentScan_.num_ranges > 100)//250)
     {
         updateLocalization();
-        //std::cout << "localization complete!" << std::endl;
         updateMap();
-        //std::cout << "mapping complete!" << std::endl;
     }
     else 
     {
@@ -270,7 +268,6 @@ void OccupancyGridSLAM::updateLocalization(void)
         sum[0] = (sum[0]* num[0] + (float)(end-begin)/CLOCKS_PER_SEC)/(++num[0]);
         
         auto particles = filter_.particles();
- //       std::cout<<"numParticles: "<<particles.num_particles<< " Location: "<<particles.particles[0].pose.x<<" "<< particles.particles[0].pose.y<<std::endl;
         lcm_.publish(SLAM_POSE_CHANNEL, &currentPose_); 
         lcm_.publish(SLAM_PARTICLES_CHANNEL, &particles);
    }
@@ -292,7 +289,6 @@ void OccupancyGridSLAM::updateMap(void)
     {
         auto mapMessage = map_.toLCM();
         lcm_.publish(SLAM_MAP_CHANNEL, &mapMessage);
-        //map_.saveToFile("current.map");
 
     }
 

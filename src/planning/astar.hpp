@@ -29,7 +29,6 @@ struct SearchParams
 
 /**
 * Node for path plan
-* -JS
 */
 struct Node
 {
@@ -41,10 +40,6 @@ struct Node
 
     Node() : x(-1), y(-1), cost(0), pind(-1), inset(0) {}
     Node(int x_in, int y_in, float cost_in, int pind_in, int inset_in) : x(x_in), y(y_in), cost(cost_in), pind(pind_in), inset(inset_in) {}
-
-    //bool operator()( const Node* a, const Node* b ) const {
-    //    return a->cost < b->cost;
-   //}
 
     bool operator<(const Node &b) const {
         return cost < b.cost;
@@ -80,9 +75,6 @@ int calc_id(int x, int y, int width);
 
 // Calculate final path
 void calc_final_path(Node ngoal, const Node * closedset, robot_path_t * path, const ObstacleDistanceGrid& distances);
-
-// Print sets for debugging
-//void print_sets(const Node * openset, const Node * closedset);
 
 Point<int> global_to_cell(float x, float y, const ObstacleDistanceGrid& distances);
 Point<float> cell_to_global (int x, int y, const ObstacleDistanceGrid& distances);

@@ -55,6 +55,5 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
                                    const OccupancyGrid& map,
                                    const MotionPlanner& planner);
 
-Point<float> find_free_neighbor(Point<float> frontier_cell, Point<int> slope, const OccupancyGrid& map);
 
 #endif // PLANNING_FRONTIERS_HPP

@@ -16,9 +16,7 @@ ParticleFilter::ParticleFilter(int numParticles)
 
 void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
 {
-    std::cout<<"particles initialized \n";
    initializeUniformPosteriorDistribution(pose); 
-//   initializeGaussianPosteriorDistribution(pose); 
 }
 
 void ParticleFilter::initializeGaussianPosteriorDistribution(const pose_xyt_t& pose)
@@ -41,25 +39,7 @@ void ParticleFilter::initializeUniformPosteriorDistribution(const pose_xyt_t& po
    default_random_engine generator_initial_particle_distribution; //must to seeded only once
    float dev[] = {0.0,0.0,0.0};//{0.05,0.05,0.0}; // stddev in x,y,theta
    uniform_real_distribution<float> x_distribution(-dev[0],dev[0]), y_distribution(-dev[1],dev[1]), theta_distribution(-dev[2],dev[2]); // Consider uniform distribution for kidnapped robot case
-    
-/*
-    OccupancyGrid map = OccupancyGrid(3,3,.1);
-    std::random_device rd;
-    std::mt19937 eng(rd());
-    std::uniform_int_distribution<> xdistr(-map.widthInMeters()/2, map.widthInMeters()/2);
-    std::uniform_int_distribution<> ydistr(-map.heightInMeters()/2, map.heightInMeters()/2);
-    std::uniform_int_distribution<> thetadistr(-1*M_PI, M_PI);
-    Point<float> mapOrigin = map.originInGlobalFrame();
 
-    for (int i = 0; i < kNumParticles_; i++) {
-        posterior_[i].parent_pose.x = mapOrigin.x + xdistr(eng);
-        posterior_[i].parent_pose.y = mapOrigin.y + ydistr(eng);
-        posterior_[i].parent_pose.theta =thetadistr(eng);
-        posterior_[i].pose = posterior_[i].parent_pose;
-        posterior_[i].weight = (float) 1.0 / kNumParticles_;
-    }
-
-*/
    for (int i = 0; i < kNumParticles_; i++) {
         posterior_[i].parent_pose.x = pose.x + x_distribution(generator_initial_particle_distribution);
         posterior_[i].parent_pose.y = pose.y + y_distribution(generator_initial_particle_distribution);
@@ -81,52 +61,23 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
 
     if(hasRobotMoved)
     {
-        
-        /*for (int i = 0; i < kNumParticles_; i++) 
-        {
-            posterior_[i] = actionModel_.applyAction(posterior_[i]);
-            posterior_[i].weight = 1;//1 / kNumParticles_;
-        }
-        */
         static float sum[4] = {0,0,0,0};
         static int num[4] = {0,0,0,0}; 
         auto prev_pose = posteriorPose_;
         auto prev_posterior_ = posterior_;
-        clock_t begin = clock();
         auto prior = resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
-        clock_t end = clock();
-        sum[0] = (sum[0]* ++num[0] + (float)(end-begin)/CLOCKS_PER_SEC)/num[0]; 
-//        cout<< sum[0]<<" sec. resample\n";
-        begin = clock();
         auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
-        end = clock();
-        sum[1] = (sum[1]* ++num[1] + (float)(end-begin)/CLOCKS_PER_SEC)/num[1]; 
-//        cout<< sum[1]<<" sec. action\n";
-        begin = clock();
         posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
-        end = clock();
-        sum[2] = (sum[2]* ++num[2] + (float)(end-begin)/CLOCKS_PER_SEC)/num[2]; 
-//        cout<< sum[2]<<" sec. sensor\n";
-        begin = clock();
         posteriorPose_  = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
-        end = clock();
-//        sum[3] = (sum[3]* ++num[3] + (float)(end-begin)/CLOCKS_PER_SEC)/num[3]; 
-        cout<< sum[3]<<" sec. posterior\n";
+
         float change_in_theta = fabs(prev_pose.theta - posteriorPose_.theta);
-//        cout<< (sum[0]+sum[1]+sum[2]+sum[3])<<" sec. total\n";
-        //std::cout << "change in theat: " << change_in_theta;
+
         if( change_in_theta > M_PI/4.0 && change_in_theta < 15.0*M_PI/8.0)
             {
                 posterior_ = prev_posterior_;
                 posteriorPose_ = prev_pose;
             }
-        //std::cout << "Slam Pose: (" << posteriorPose_.x << ", " << posteriorPose_.y << ", " << posteriorPose_.theta << ")\n";
     }
-
-    // DEBUG
-//    posteriorPose_.x = 0;
-//    posteriorPose_.y = 0;
-//    posteriorPose_.theta = 0;
     
     posteriorPose_.utime = odometry.utime;
     
@@ -171,12 +122,8 @@ std::vector<particle_t> ParticleFilter::resamplePosteriorDistribution(void)
                 index++;
             }
         prior[j] = posterior_[index];
-//        prior[j].weight = (float) 1/kNumParticles_;
         threshold = threshold + (float) (1.0/kNumParticles_);
     }
-//    cout<<"From resamplePosteriorDistribution " <<prior[0].pose.x<<" " << posterior_[0].pose.x<<endl;
-    
-//    prior = posterior_; don't uncomment this unless u want to remove resampling
     return Normalize(prior);
 }
 
@@ -209,7 +156,6 @@ std::vector<particle_t> ParticleFilter::computeProposalDistribution(const std::v
         {
             proposal[i] = actionModel_.applyAction(prior[i]);
         }
-//    cout<<"From computeProposalDistribution " <<proposal[0].pose.x<<" " << prior[0].pose.x<<endl;
     return proposal;
 }
 
@@ -256,17 +202,12 @@ pose_xyt_t ParticleFilter::estimatePosteriorPose(const std::vector<particle_t>& 
     float cart_x = 0, cart_y = 0;
     for(int i = 0; i< kNumParticles_; i++)
     {
-
-        //std::cout << "x: " << posterior[i].pose.x << "  y: " << posterior[i].pose.y << "  weight: " << posterior[i].weight << std::endl;
         pose.x = pose.x + posterior[i].weight*posterior[i].pose.x;
         pose.y = pose.y + posterior[i].weight*posterior[i].pose.y;
         cart_x += posterior[i].weight*cos(posterior[i].pose.theta);
         cart_y += posterior[i].weight*sin(posterior[i].pose.theta);     
     }
-    pose.theta = atan2(cart_y,cart_x); //pose.theta + posterior[i].weight*posterior[i].pose.theta;
-//    pose.x = pose.x/kNumParticles_; // Debug, comment later
-//    pose.y = pose.y/kNumParticles_; // Debug, comment later
-//    pose.theta = pose.theta/kNumParticles_; // Debug, comment later
+    pose.theta = atan2(cart_y,cart_x);
     pose.utime = posterior[kNumParticles_-1].pose.utime;    
     return pose;
 }
