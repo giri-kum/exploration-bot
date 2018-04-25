@@ -254,8 +254,20 @@ void OccupancyGridSLAM::updateLocalization(void)
 {
     if(haveMap_ && (mode_ != mapping_only))
     {
+        static float avg;
+        static int num_iter;
+
         previousPose_ = currentPose_;
+
+        clock_t begin = clock();
         currentPose_  = filter_.updateFilter(currentOdometry_, currentScan_, map_);//, v_, omega_, utime_); //remove last 3 args for odo
+        clock_t end = clock();
+
+        num_iter++;
+        avg = (avg*(num_iter-1) + (float)(end-begin)/CLOCKS_PER_SEC)) / num_iter;
+        std::cout << "avg time = " << avg << " seconds";
+
+        sum[0] = (sum[0]* num[0] + (float)(end-begin)/CLOCKS_PER_SEC)/(++num[0]);
         
         auto particles = filter_.particles();
  //       std::cout<<"numParticles: "<<particles.num_particles<< " Location: "<<particles.particles[0].pose.x<<" "<< particles.particles[0].pose.y<<std::endl;

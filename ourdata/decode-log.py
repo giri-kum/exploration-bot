@@ -130,7 +130,7 @@ max_y = np.max(np.absolute(error_y))
 max_theta = np.max(np.absolute(error_theta))
 
 for i in range (len(error_utime)):
-    error_utime[i] = (float)(error_utime[i]) / pow(10,6) - 1.51181653e9
+    error_utime[i] = (float)(error_utime[i]) / pow(10,6) - 1.51268686e9
 
 
 # Print statistics
@@ -146,13 +146,14 @@ std_y_lower = np.ones(len(error_y)) * (mean_y - 3*std_y)
 std_theta_upper = np.ones(len(error_theta)) * (mean_theta + 3*std_theta)
 std_theta_lower = np.ones(len(error_theta)) * (mean_theta - 3*std_theta)
 
+
 if(get_particles):
     for i in range(len(particles_x)):
         psx = particles_x[i]
         psy = particles_y[i]
 
         for j in range(len(psx)):
-            plt.plot(psx[j],psx[j],'r.')
+            plt.plot(psx[j],psy[j],'r.')
         print("Particles plotted")        
 
 
@@ -161,8 +162,8 @@ t1 = true_utime
 t2 = slam_utime
 
 k = float(1e6)
-t1 = [float(i/k) - 1.51181653e9 for i in t1]
-t2 = [float(i/k) - 1.51181653e9 for i in t2]
+t1 = [float(i/k) - 1.51268686e9 for i in t1]
+t2 = [float(i/k) - 1.51268686e9 for i in t2]
 
 
 plt.figure(2)
