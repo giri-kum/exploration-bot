@@ -4,7 +4,7 @@
 #include <cassert>
 #include <random>
 #include <algorithm>
-
+#include <ctime>
 using namespace std;
 ParticleFilter::ParticleFilter(int numParticles)
 : kNumParticles_ (numParticles)
@@ -78,7 +78,7 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
     // Only update the particles if motion was detected. If the robot didn't move, then
     // obviously don't do anything.
     bool hasRobotMoved = actionModel_.updateAction(odometry);
-    
+
     if(hasRobotMoved)
     {
         
@@ -88,13 +88,32 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
             posterior_[i].weight = 1;//1 / kNumParticles_;
         }
         */
+        static float sum[4] = {0,0,0,0};
+        static int num[4] = {0,0,0,0}; 
         auto prev_pose = posteriorPose_;
         auto prev_posterior_ = posterior_;
+        clock_t begin = clock();
         auto prior = resamplePosteriorDistribution(); // resample before applying the action because you don't reset the weights        
+        clock_t end = clock();
+        sum[0] = (sum[0]* ++num[0] + (float)(end-begin)/CLOCKS_PER_SEC)/num[0]; 
+//        cout<< sum[0]<<" sec. resample\n";
+        begin = clock();
         auto proposal = computeProposalDistribution(prior); //you apply action model onto the particles in this function
+        end = clock();
+        sum[1] = (sum[1]* ++num[1] + (float)(end-begin)/CLOCKS_PER_SEC)/num[1]; 
+//        cout<< sum[1]<<" sec. action\n";
+        begin = clock();
         posterior_ = computeNormalizedPosterior(proposal, laser, map); // you update the weights using sensor model here (don't forget to normalize)
+        end = clock();
+        sum[2] = (sum[2]* ++num[2] + (float)(end-begin)/CLOCKS_PER_SEC)/num[2]; 
+//        cout<< sum[2]<<" sec. sensor\n";
+        begin = clock();
         posteriorPose_  = estimatePosteriorPose(posterior_); // you compute the pose using max or mean of particles locaiton here
+        end = clock();
+//        sum[3] = (sum[3]* ++num[3] + (float)(end-begin)/CLOCKS_PER_SEC)/num[3]; 
+        cout<< sum[3]<<" sec. posterior\n";
         float change_in_theta = fabs(prev_pose.theta - posteriorPose_.theta);
+//        cout<< (sum[0]+sum[1]+sum[2]+sum[3])<<" sec. total\n";
         //std::cout << "change in theat: " << change_in_theta;
         if( change_in_theta > M_PI/4.0 && change_in_theta < 15.0*M_PI/8.0)
             {

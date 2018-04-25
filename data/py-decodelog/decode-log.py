@@ -12,7 +12,8 @@ if len(sys.argv) < 2:
 log = lcm.EventLog(sys.argv[1], "r")
 
 for event in log:
-    if event.channel == "TRUE_POSE":
+    #if event.channel == "TRUE_POSE":
+    if event.channel == "OPTITRACK_CHANNEL":
         msg = pose_xyt_t.decode(event.data)
         print("TruePose:")
         print("timestamp= %d" % msg.utime)
